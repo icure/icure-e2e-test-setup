@@ -31,5 +31,7 @@ services:
       - "8080:8080"
     environment:
       - ICURE_URL=http://icure-oss-test:16043
+      - ICURE_ADMIN_USER=admin
+      - ICURE_ADMIN_PWD=admin
     profiles:
       - mock
