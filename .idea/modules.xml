@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/icure-e2e-test-setup.iml" filepath="$PROJECT_DIR$/.idea/icure-e2e-test-setup.iml" />
+      <module fileurl="file://$PROJECT_DIR$/lib/ts/ts.iml" filepath="$PROJECT_DIR$/lib/ts/ts.iml" />
+    </modules>
+  </component>
+</project>

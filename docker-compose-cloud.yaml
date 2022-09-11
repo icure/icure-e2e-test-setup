@@ -1,24 +1,22 @@
-version: '3.8'
+version: "3.8"
 
 services:
   couchdb:
     image: couchdb:3.2.2
     container_name: couchdb-test
     ports:
-      - '${COUCHDB_PORT}:5984'
+      - "${COUCHDB_PORT}:5984"
     environment:
       - COUCHDB_USER=${COUCHDB_USER}
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
 
   icure-test-1:
-    image: docker.taktik.be/icure/icure-kraken:2.3.16821-g9573fd5d41
+    image: docker.taktik.be/icure/icure-kraken:${AS_VERSION}
     container_name: icure-oss-test-1
     ports:
-      - '5005:5005'
-      - '${AS_PORT_1}:16043'
-    restart: on-failure
+      - "5005:5005"
+      - "${AS_PORT_1}:16043"
     environment:
-      - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       - ICURE_COUCHDB_URL=http://couchdb-test:5984
       - ICURE_COUCHDB_USERNAME=${COUCHDB_USER}
       - ICURE_COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
@@ -27,14 +25,12 @@ services:
       - couchdb
 
   icure-test-2:
-    image: docker.taktik.be/icure/icure-kraken:2.3.16821-g9573fd5d41
+    image: docker.taktik.be/icure/icure-kraken:${AS_VERSION}
     container_name: icure-oss-test-2
     ports:
-      - '5006:5005'
-      - '${AS_PORT_2}:16043'
-    restart: on-failure
+      - "5006:5005"
+      - "${AS_PORT_2}:16043"
     environment:
-      - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       - ICURE_COUCHDB_URL=http://couchdb-test:5984
       - ICURE_COUCHDB_USERNAME=${COUCHDB_USER}
       - ICURE_COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
@@ -48,3 +44,10 @@ services:
     volumes:
       - ./haproxy/:/etc/haproxy/
 
+  mock-msg-gw:
+    image: docker.taktik.be/mock-msg-gw:1.0.0
+    container_name: mock-msg-gw
+    ports:
+      - "8080:8080"
+    profiles:
+      - mock-msg-gw

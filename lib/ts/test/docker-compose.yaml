@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  couchdb:
+    image: couchdb:3.2.2
+    container_name: couchdb-test
+    ports:
+      - '${COUCHDB_PORT}:5984'
+    environment:
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+
+  icure-oss-test:
+    image: docker.taktik.be/icure-oss:2.4.23-kraken.c1b1db7acc
+    container_name: icure-oss-test
+    ports:
+      - '5005:5005'
+      - '${AS_PORT}:16043'
+    restart: on-failure
+    environment:
+      - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      - ICURE_COUCHDB_URL=http://couchdb-test:5984
+      - ICURE_COUCHDB_USERNAME=${COUCHDB_USER}
+      - ICURE_COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+      - ICURE_AUTHENTICATION_LOCAL=true
+    depends_on:
+      - couchdb
+
+  mock-msg-gw:
+    image: docker.taktik.be/mock-msg-gw:1.0.0
+    container_name: mock-msg-gw
+    ports:
+      - '8080:8080'
+    restart: on-failure

@@ -1,0 +1,52 @@
+{
+  "name": "icure-e2e-test-setup-ts",
+  "version": "0.0.1",
+  "description": "A simple lib to launch containers used to setup local tests environment",
+  "main": "index.ts",
+  "repository": "https://github.com/icure-io/icure-e2e-test-setup",
+  "author": "Antoine Duchâteau, iCure©",
+  "license": "GPL",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "install": "tsc",
+    "prepublish": "rm -rf dist && tsc",
+    "prepare": "rimraf dist && npm run build && jq '{name:.name, version:.version, description:.description, main:\"index.js\", types:\"index.d.ts\", dependencies:.dependencies, author:.author, license:.license, bugs:.bugs, homepage:.homepage}' < package.json > dist/package.json",
+    "publish": "yarn version && yarn run prepare && cd dist && yarn publish --no-git-tag-version --new-version `git describe --abbrev=0 --tags` && cd ..",
+    "precommit": "pretty-quick --staged"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.16",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "^18.7.16",
+    "@types/supertest": "^2.0.12",
+    "@types/uuid": "^3.4.5",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/eslint-plugin-tslint": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "axios": "^0.27.2",
+    "babel-eslint": "10.0.1",
+    "chai": "^4.3.4",
+    "eslint": "^7.24.0",
+    "eslint-config-prettier": "^8.2.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsdoc": "^32.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "husky": "^3.0.0",
+    "lint-staged": "^8.2.0",
+    "mixin-deep": "^2.0.1",
+    "mocha": "^8.3.2",
+    "nodemon": "^1.19.1",
+    "prettier": "^2.2.1",
+    "pretty-quick": "^3.1.0",
+    "rimraf": "^3.0.2",
+    "supertest": "^6.2.4",
+    "ts-node": "^9.1.1",
+    "typescript": "4.6.2"
+  },
+  "dependencies": {
+    "date-fns": "^2.3.0",
+    "uuid": "^3.3.2"
+  },
+  "packageManager": "yarn@3.2.3"
+}
