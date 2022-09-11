@@ -24,11 +24,11 @@ async function checkCouchDbStarted() {
 async function checkMsgGwStarted() {
   await retry(async () => {
     const {
-      data: { pong },
+      data: { status: msgGwStatus },
       status,
-    } = await axios.get('http://127.0.0.1:8080/ping')
+    } = await axios.get('http://127.0.0.1:8080/actuator/health')
     expect(status).to.equal(200)
-    expect(pong).to.match(/1\d+/)
+    expect(msgGwStatus).to.equal('UP')
   })
 }
 
