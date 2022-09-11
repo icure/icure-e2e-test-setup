@@ -11,7 +11,7 @@ services:
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
 
   icure-test-1:
-    image: docker.taktik.be/icure/icure-kraken:${AS_VERSION}
+    image: docker.taktik.be/icure/icure-kraken:${AS_VERSION:-2.3.16840-g172729a8cf}
     container_name: icure-oss-test-1
     ports:
       - "5005:5005"
@@ -25,7 +25,7 @@ services:
       - couchdb
 
   icure-test-2:
-    image: docker.taktik.be/icure/icure-kraken:${AS_VERSION}
+    image: docker.taktik.be/icure/icure-kraken:${AS_VERSION:-2.3.16840-g172729a8cf}
     container_name: icure-oss-test-2
     ports:
       - "5006:5005"
@@ -45,9 +45,9 @@ services:
       - ./haproxy/:/etc/haproxy/
 
   mock-msg-gw:
-    image: docker.taktik.be/mock-msg-gw:1.0.0
-    container_name: mock-msg-gw
+    image: docker.taktik.be/icure/mock:0.1.5-gd5c69a6ee4
+    container_name: mock
     ports:
       - "8080:8080"
     profiles:
-      - mock-msg-gw
+      - mock

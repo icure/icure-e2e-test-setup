@@ -44,7 +44,7 @@ describe('Test setup', () => {
     await checkCouchDbStarted()
   })
   it('profiles let you control the launched containers', async () => {
-    await setup('test/scratch', 'docker-compose', 'msg-gw')
+    await setup('test/scratch', 'docker-compose', 'mock')
     await checkCouchDbStarted()
     await checkMsgGwStarted()
   })

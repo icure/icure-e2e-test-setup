@@ -25,9 +25,9 @@ services:
       - couchdb
 
   mock-msg-gw:
-    image: docker.taktik.be/mock-msg-gw:1.0.0
-    container_name: mock-msg-gw
+    image: docker.taktik.be/icure/mock:0.1.5-gd5c69a6ee4
+    container_name: mock
     ports:
       - "8080:8080"
     profiles:
-      - mock-msg-gw
+      - mock
