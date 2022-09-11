@@ -33,18 +33,18 @@ async function checkMsgGwStarted() {
 }
 
 describe('Test setup', () => {
-  afterEach(() => cleanup('test', 'docker-compose'))
+  afterEach(() => cleanup('test/scratch', 'docker-compose'))
 
   it('should start the docker with long urls', async () => {
-    await setup('test', 'https://raw.githubusercontent.com/icure-io/icure-e2e-test-setup/master/docker-compose.yaml')
+    await setup('test/scratch', 'https://raw.githubusercontent.com/icure-io/icure-e2e-test-setup/master/docker-compose.yaml')
     await checkCouchDbStarted()
   })
   it('should start the docker with short urls', async () => {
-    await setup('test', 'docker-compose')
+    await setup('test/scratch', 'docker-compose')
     await checkCouchDbStarted()
   })
   it('profiles let you control the launched containers', async () => {
-    await setup('test', 'docker-compose', 'msg-gw')
+    await setup('test/scratch', 'docker-compose', 'msg-gw')
     await checkCouchDbStarted()
     await checkMsgGwStarted()
   })
