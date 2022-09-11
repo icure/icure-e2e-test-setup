@@ -11,7 +11,7 @@ services:
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
 
   icure-oss-test:
-    image: docker.taktik.be/icure-oss:${VERSION}
+    image: docker.taktik.be/icure-oss:${VERSION:-latest}
     container_name: icure-oss-test
     ports:
       - "5005:5005"
