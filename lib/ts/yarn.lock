@@ -194,6 +194,42 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@icure/test-setup@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@icure/test-setup@workspace:."
+  dependencies:
+    "@types/chai": ^4.2.16
+    "@types/mocha": ^8.2.2
+    "@types/node": ^18.7.16
+    "@types/supertest": ^2.0.12
+    "@types/uuid": ^3.4.5
+    "@typescript-eslint/eslint-plugin": ^4.33.0
+    "@typescript-eslint/eslint-plugin-tslint": ^4.33.0
+    "@typescript-eslint/parser": ^4.33.0
+    axios: ^0.27.2
+    babel-eslint: 10.0.1
+    chai: ^4.3.4
+    date-fns: ^2.3.0
+    eslint: ^7.24.0
+    eslint-config-prettier: ^8.2.0
+    eslint-plugin-import: ^2.22.1
+    eslint-plugin-jsdoc: ^32.3.0
+    eslint-plugin-prettier: ^3.4.0
+    husky: ^3.0.0
+    lint-staged: ^8.2.0
+    mixin-deep: ^2.0.1
+    mocha: ^8.3.2
+    nodemon: ^1.19.1
+    prettier: ^2.2.1
+    pretty-quick: ^3.1.0
+    rimraf: ^3.0.2
+    supertest: ^6.2.4
+    ts-node: ^9.1.1
+    typescript: 4.6.2
+    uuid: ^3.3.2
+  languageName: unknown
+  linkType: soft
+
 "@jridgewell/gen-mapping@npm:^0.3.2":
   version: 0.3.2
   resolution: "@jridgewell/gen-mapping@npm:0.3.2"
@@ -3028,42 +3064,6 @@ __metadata:
   checksum: 3f60d47a5c8fc3313317edfd29a00a692cc87a19cac0159e2ce711d0ebc9019064108323b5e493625e25594f11c6236647d8e256fbe7a58f4a3b33b89e6d30bf
   languageName: node
   linkType: hard
-
-"icure-e2e-test-setup-ts@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "icure-e2e-test-setup-ts@workspace:."
-  dependencies:
-    "@types/chai": ^4.2.16
-    "@types/mocha": ^8.2.2
-    "@types/node": ^18.7.16
-    "@types/supertest": ^2.0.12
-    "@types/uuid": ^3.4.5
-    "@typescript-eslint/eslint-plugin": ^4.33.0
-    "@typescript-eslint/eslint-plugin-tslint": ^4.33.0
-    "@typescript-eslint/parser": ^4.33.0
-    axios: ^0.27.2
-    babel-eslint: 10.0.1
-    chai: ^4.3.4
-    date-fns: ^2.3.0
-    eslint: ^7.24.0
-    eslint-config-prettier: ^8.2.0
-    eslint-plugin-import: ^2.22.1
-    eslint-plugin-jsdoc: ^32.3.0
-    eslint-plugin-prettier: ^3.4.0
-    husky: ^3.0.0
-    lint-staged: ^8.2.0
-    mixin-deep: ^2.0.1
-    mocha: ^8.3.2
-    nodemon: ^1.19.1
-    prettier: ^2.2.1
-    pretty-quick: ^3.1.0
-    rimraf: ^3.0.2
-    supertest: ^6.2.4
-    ts-node: ^9.1.1
-    typescript: 4.6.2
-    uuid: ^3.3.2
-  languageName: unknown
-  linkType: soft
 
 "ignore-by-default@npm:^1.0.1":
   version: 1.0.1

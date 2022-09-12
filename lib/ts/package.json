@@ -1,6 +1,6 @@
 {
-  "name": "icure-e2e-test-setup-ts",
-  "version": "0.0.1",
+  "name": "@icure/test-setup",
+  "version": "0.0.3",
   "description": "A simple lib to launch containers used to setup local tests environment",
   "main": "index.ts",
   "repository": "https://github.com/icure-io/icure-e2e-test-setup",
@@ -11,8 +11,8 @@
     "build": "tsc",
     "install": "tsc",
     "prepublish": "rm -rf dist && tsc",
-    "prepare": "rimraf dist && npm run build && jq '{name:.name, version:.version, description:.description, main:\"index.js\", types:\"index.d.ts\", dependencies:.dependencies, author:.author, license:.license, bugs:.bugs, homepage:.homepage}' < package.json > dist/package.json",
-    "publish": "yarn version && yarn run prepare && cd dist && yarn publish --no-git-tag-version --new-version `git describe --abbrev=0 --tags` && cd ..",
+    "prepare": "rimraf dist && npm run build && touch dist/yarn.lock && jq '{name:.name, version:.version, description:.description, main:\"index.js\", types:\"index.d.ts\", dependencies:.dependencies, author:.author, license:.license, bugs:.bugs, homepage:.homepage}' < package.json > dist/package.json",
+    "publish": "yarn version patch && yarn run prepare && cd dist && yarn publish --no-git-tag-version --new-version `git describe --abbrev=0 --tags` && cd ..",
     "precommit": "pretty-quick --staged"
   },
   "devDependencies": {
