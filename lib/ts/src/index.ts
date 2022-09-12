@@ -29,10 +29,10 @@ export const setup = async (scratchDir: string, compose: string, ...profiles: st
   }
 }
 
-export const cleanup = async (scratchDir: string, compose: string) => {
+export const cleanup = async (scratchDir: string, compose: string, ...profiles: string[]) => {
   try {
     const composeFile = await download(scratchDir, fullUrl(compose))
-    const { stdout, stderr } = await util.promisify(exec)(`/usr/local/bin/docker compose -f '${composeFile}' down`, { env: standardEnv })
+    const { stdout, stderr } = await util.promisify(exec)(`/usr/local/bin/docker compose -f '${composeFile}' ${profiles.map((p) => `--profile ${p}`).join(' ')} down`, { env: standardEnv })
     console.log(`stdout: ${stdout}`)
     console.error(`stderr: ${stderr}`)
   } catch (e) {

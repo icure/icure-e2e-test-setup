@@ -32,6 +32,17 @@ async function checkMsgGwStarted() {
   })
 }
 
+async function checkMsgGwNotStarted() {
+  await retry(async () => {
+    const {
+      data: { status: msgGwStatus },
+      status,
+    } = await axios.get('http://127.0.0.1:8080/actuator/health').catch(() => ({ status: 0, data: { status: 'DOWN' } }))
+    expect(status).to.equal(0)
+    expect(msgGwStatus).to.equal('DOWN')
+  })
+}
+
 describe('Test setup', () => {
   afterEach(() => cleanup('test/scratch', 'docker-compose'))
 
@@ -43,9 +54,12 @@ describe('Test setup', () => {
     await setup('test/scratch', 'docker-compose')
     await checkCouchDbStarted()
   })
-  it('profiles let you control the launched containers', async () => {
+  it('should use profiles to select the launched containers', async () => {
     await setup('test/scratch', 'docker-compose', 'mock')
     await checkCouchDbStarted()
     await checkMsgGwStarted()
+    await cleanup('test/scratch', 'docker-compose', 'mock')
+    await setup('test/scratch', 'docker-compose')
+    await checkMsgGwNotStarted()
   })
 })
