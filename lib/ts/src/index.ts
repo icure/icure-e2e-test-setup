@@ -18,6 +18,19 @@ function fullUrl(composeFile: string) {
 
 export const setup = async (scratchDir: string, compose: string, ...profiles: string[]) => {
   const composeFile = await download(scratchDir, fullUrl(compose))
+
+  const composeFileContent = fs.readFileSync(composeFile, 'utf8')
+  const dependencies = composeFileContent.split(/# => /).reduce((files, s) => {
+    const lines = s.split(/[\r\n]+# /)
+    return { ...files, [lines[0]]: lines.slice(1) }
+  }, {} as { [key: string]: string[] })
+
+  Object.keys(dependencies).forEach((file) => {
+    const filePath = path.join(scratchDir, file)
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.writeFileSync(filePath, dependencies[file].join('\n'))
+  })
+
   try {
     const { stdout, stderr } = await util.promisify(exec)(`/usr/local/bin/docker compose -f '${composeFile}' ${profiles.map((p) => `--profile ${p}`).join(' ')} up -d`, {
       env: standardEnv,

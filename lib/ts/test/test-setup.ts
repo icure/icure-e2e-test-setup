@@ -62,4 +62,9 @@ describe('Test setup', () => {
     await setup('test/scratch', 'docker-compose')
     await checkMsgGwNotStarted()
   })
+  it('should start the a complex set of docker containers dependent on embedded files', async () => {
+    await setup('test/scratch1', 'docker-compose-cloud')
+    await checkCouchDbStarted()
+  })
+
 })

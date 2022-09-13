@@ -10,12 +10,12 @@ services:
       - COUCHDB_USER=${COUCHDB_USER}
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
 
-  icure-test-1:
+  kraken-1:
     image: docker.taktik.be/icure/icure-kraken:${AS_VERSION:-latest}
     container_name: icure-oss-test-1
     ports:
       - "5005:5005"
-      - "${AS_PORT_1}:16043"
+      - "16044:16043"
     environment:
       - ICURE_COUCHDB_URL=http://couchdb-test:5984
       - ICURE_COUCHDB_USERNAME=${COUCHDB_USER}
@@ -24,12 +24,12 @@ services:
     depends_on:
       - couchdb
 
-  icure-test-2:
+  kraken-2:
     image: docker.taktik.be/icure/icure-kraken:${AS_VERSION:-latest}
     container_name: icure-oss-test-2
     ports:
       - "5006:5005"
-      - "${AS_PORT_2}:16043"
+      - "16045:16043"
     environment:
       - ICURE_COUCHDB_URL=http://couchdb-test:5984
       - ICURE_COUCHDB_USERNAME=${COUCHDB_USER}
@@ -51,3 +51,30 @@ services:
       - "8080:8080"
     profiles:
       - mock
+
+# => ./haproxy/haproxy.cfg
+# global
+#   stats socket /var/run/api.sock user haproxy group haproxy mode 660 level admin expose-fd listeners
+#   log stdout format raw local0 info
+# defaults
+#   log global
+#   option dontlognull
+#   option http-server-close
+#   timeout client 5m
+#   timeout client-fin 50s
+#   timeout connect 5s
+#   timeout server 1d
+#   timeout tunnel 20m
+#   mode http
+# frontend stats
+#   bind *:16046
+#   stats enable
+#   stats uri /
+#   stats refresh 10s
+# frontend myfrontend
+#   bind :8080
+#   default_backend webservers
+# backend webservers
+#   option redispatch
+#   server k1 kraken-1:16043 check
+#   server k2 kraken-2:16043 check
