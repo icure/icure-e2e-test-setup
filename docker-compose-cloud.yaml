@@ -12,7 +12,7 @@ services:
 
   kraken-1:
     image: docker.taktik.be/icure/icure-kraken:${AS_VERSION:-latest}
-    container_name: icure-oss-test-1
+    container_name: kraken-1
     ports:
       - "5005:5005"
       - "16044:16043"
@@ -26,7 +26,7 @@ services:
 
   kraken-2:
     image: docker.taktik.be/icure/icure-kraken:${AS_VERSION:-latest}
-    container_name: icure-oss-test-2
+    container_name: kraken-2
     ports:
       - "5006:5005"
       - "16045:16043"
