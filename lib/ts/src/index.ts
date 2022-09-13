@@ -20,7 +20,7 @@ export const setup = async (scratchDir: string, compose: string, ...profiles: st
   const composeFile = await download(scratchDir, fullUrl(compose))
 
   const composeFileContent = fs.readFileSync(composeFile, 'utf8')
-  const dependencies = composeFileContent.split(/# => /).reduce((files, s) => {
+  const dependencies = composeFileContent.split(/# => /).slice(1).reduce((files, s) => {
     const lines = s.split(/[\r\n]+# /)
     return { ...files, [lines[0]]: lines.slice(1) }
   }, {} as { [key: string]: string[] })
