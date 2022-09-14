@@ -1,0 +1,16 @@
+#!/bin/zsh
+set -x
+# Path: test-setup
+CMD=$1
+
+if [[ $CMD == "setup" ]]; then
+  SCRATCH=$2
+  mkdir -p "$SCRATCH"
+  cd "$SCRATCH" || exit
+  COMP=$(perl -pe 's/.ya?ml$//' <<< "$3")
+  curl -O https://raw.githubusercontent.com/icure-io/icure-e2e-test-setup/master/"$COMP".yaml
+  docker compose -f "$COMP.yaml" up -d
+else
+    echo "Invalid command"
+    exit 1
+fi
