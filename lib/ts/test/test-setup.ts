@@ -1,14 +1,7 @@
 import { afterEach, describe } from 'mocha'
-import { cleanup, setup } from '../src'
+import { cleanup, retry, setup } from '../src'
 import axios from 'axios'
 import { expect } from 'chai'
-
-const retry = (fn: () => Promise<any>, retriesLeft = 5, interval = 1000): Promise<any> => {
-  return fn().catch((err) => {
-    console.log('Retrying in ' + interval + 'ms', err)
-    return new Promise((resolve) => setTimeout(() => resolve(retry(fn, retriesLeft - 1, interval * 2)), interval)).then(() => fn())
-  })
-}
 
 async function checkCouchDbStarted() {
   await retry(async () => {

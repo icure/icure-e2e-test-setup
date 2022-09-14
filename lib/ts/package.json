@@ -1,6 +1,6 @@
 {
   "name": "@icure/test-setup",
-  "version": "0.0.3",
+  "version": "0.0.8",
   "description": "A simple lib to launch containers used to setup local tests environment",
   "main": "index.ts",
   "repository": "https://github.com/icure-io/icure-e2e-test-setup",
@@ -12,7 +12,7 @@
     "install": "tsc",
     "prepublish": "rm -rf dist && tsc",
     "prepare": "rimraf dist && npm run build && touch dist/yarn.lock && jq '{name:.name, version:.version, description:.description, main:\"index.js\", types:\"index.d.ts\", dependencies:.dependencies, author:.author, license:.license, bugs:.bugs, homepage:.homepage}' < package.json > dist/package.json",
-    "publish": "yarn version patch && yarn run prepare && cd dist && yarn publish --no-git-tag-version --new-version `git describe --abbrev=0 --tags` && cd ..",
+    "publish": "yarn version patch && yarn run prepare && cd dist && yarn install && yarn npm publish && cd ..",
     "precommit": "pretty-quick --staged"
   },
   "devDependencies": {
@@ -42,6 +42,8 @@
     "rimraf": "^3.0.2",
     "supertest": "^6.2.4",
     "ts-node": "^9.1.1",
+    "typedoc": "^0.23.14",
+    "typedoc-plugin-markdown": "^3.13.6",
     "typescript": "4.6.2"
   },
   "dependencies": {
