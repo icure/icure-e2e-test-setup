@@ -9,7 +9,8 @@ This directory contains the docker compose files used to prepare a test environm
 
 ## Docker profiles
 
-The docker compose files can be used with different profiles. The profiles are used to select the right docker containers to start.
+The docker compose files can be used with different profiles. The profiles are used to select the right docker containers to start. The profiles are defined in the docker-compose files.
+
 For example, the mock profile can be used to start the optional mock container that simulates the msg-gw server.
 
 ## How to use
@@ -17,7 +18,9 @@ For example, the mock profile can be used to start the optional mock container t
 The docker compose files can be used in two ways:
 
 * directly with docker compose: `docker compose -f docker-compose.yaml up -d`
-* with the test-setup library: `test-setup setup <scratchDir> <compose>` or in typescript: `await setup(<scratchDir>, <compose>, <profiles>)`
+* with the test-setup library: `test-setup setup <scratchDir> <compose>` or in typescript: `await setup(<scratchDir>, <compose>, <profiles>)` (see [the test-setup library for more details](./lib/ts/README.md))
+
+The test-setup shell script does not currently support the profiles. It does not allow for the bootstrap of the database or the kraken instances either. Those features are only available in the test-setup typescript library.
 
 ## How to add a new docker compose file
 

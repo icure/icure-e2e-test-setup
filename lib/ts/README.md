@@ -65,13 +65,13 @@ import { setup, cleanup, setupCouchDb, bootstrapCloudKraken } from '@icure/test-
 
 describe('My test suite', () => {
   beforeAll(async () => {
-    await setup('test/scratchDir', 'docker-compose');
+    await setup('test/scratchDir', 'docker-compose-cloud');
     await setupCouchDb();
     await bootstrapCloudKraken("1234");
   });
 
   afterAll(async () => {
-    await cleanup('test/scratchDir', 'docker-compose');
+    await cleanup('test/scratchDir', 'docker-compose-cloud');
   });
 
   it('should do something', () => {
@@ -93,7 +93,7 @@ describe('My test suite', () => {
 
 ### bootstrapCloudKraken
 
-▸ **bootstrapCloudKraken**(`userId`, `login?`, `passwordHash?`, `groupId?`, `groupPassword?`): `Promise`<`void`\>
+▸ **bootstrapCloudKraken**(`userId`, `login?`, `passwordHash?`, `groupId?`, `groupPassword?`): `Promise`<`void`>
 
 Bootstrap the kraken with the minimal environment needed to run the tests, create other apps, users or databases.
 
@@ -109,7 +109,7 @@ Bootstrap the kraken with the minimal environment needed to run the tests, creat
 
 #### Returns
 
-`Promise`<`void`\>
+`Promise`<`void`>
 
 #### Defined in
 
@@ -119,7 +119,7 @@ ___
 
 ### cleanup
 
-▸ **cleanup**(`scratchDir`, `compose`, ...`profiles`): `Promise`<`void`\>
+▸ **cleanup**(`scratchDir`, `compose`, `...profiles`): `Promise`<`void`>
 
 Stop the containers launched by setup and destroy them
 
@@ -133,7 +133,7 @@ Stop the containers launched by setup and destroy them
 
 #### Returns
 
-`Promise`<`void`\>
+`Promise`<`void`>
 
 #### Defined in
 
@@ -143,7 +143,7 @@ ___
 
 ### setup
 
-▸ **setup**(`scratchDir`, `compose`, ...`profiles`): `Promise`<`void`\>
+▸ **setup**(`scratchDir`, `compose`, `...profiles`): `Promise`<`void`>
 
 Setup a full environment for the tests. This will download the docker-compose files and start the containers.
 
@@ -159,7 +159,7 @@ The docker compose can embed extra files that will be extracted in the scratchDi
 
 #### Returns
 
-`Promise`<`void`\>
+`Promise`<`void`>
 
 #### Defined in
 
@@ -169,13 +169,13 @@ ___
 
 ### setupCouchDb
 
-▸ **setupCouchDb**(): `Promise`<`void`\>
+▸ **setupCouchDb**(): `Promise`<`void`>
 
 Initialise CouchDB and set the admin user and password
 
 #### Returns
 
-`Promise`<`void`\>
+`Promise`<`void`>
 
 #### Defined in
 
