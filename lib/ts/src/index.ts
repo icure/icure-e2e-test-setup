@@ -110,10 +110,10 @@ async function download(scratchDir: string, url: string) {
  * Initialise CouchDB and set the admin user and password
  *
  */
-export const setupCouchDb = async () => {
+export const setupCouchDb = async (host: string, port: number) => {
   await retry(() =>
     axios.post(
-      'http://127.0.0.1:15984/_cluster_setup',
+      `http://${host}:${port}/_cluster_setup`,
       {
         action: 'enable_single_node',
         username: 'icure',
