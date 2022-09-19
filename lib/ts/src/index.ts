@@ -134,6 +134,44 @@ export const setupCouchDb = async (host: string, port: number) => {
   )
 }
 
+
+/**
+ * Bootstrap the oss kraken with the minimal environment needed to run the tests
+ *
+ * @param userId The user id of the user that will be created
+ * @param login The login of the user that will be created
+ * @param passwordHash The password hash of the user that will be created (AES-256 encoded)
+ */
+export const bootstrapOssKraken = async (
+  userId: string,
+  login = 'john',
+  passwordHash = '1796980233375ccd113c972d946b2c4a7892e4f69c60684cfa730150047f9c0b', //LetMeIn
+) => {
+  await axios
+    .post(
+      'http://127.0.0.1:15984/icure-base',
+      {
+        _id: userId,
+        login: login,
+        passwordHash: passwordHash,
+        type: 'database',
+        status: 'ACTIVE',
+        java_type: 'org.taktik.icure.entities.User',
+      },
+      {
+        auth: { username: 'icure', password: 'icure' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+    .catch((e) => {
+      if (e.response.status !== 409) {
+        throw e
+      }
+    })
+};
+
 /**
  * Bootstrap the kraken with the minimal environment needed to run the tests, create other apps, users or databases.
  *
