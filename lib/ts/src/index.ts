@@ -17,10 +17,12 @@ const standardEnv = {
 
 export const retry = (fn: () => Promise<any>, retriesLeft = 5, interval = 1000): Promise<any> => {
   return fn().catch((err) => {
-    console.log('Retrying in ' + interval + 'ms', err)
-    return new Promise((resolve) =>
-      setTimeout(() => resolve(retry(fn, retriesLeft - 1, interval * 2)), interval)
-    ).then(() => fn())
+    if (retriesLeft > 0) {
+      console.log('Retrying in ' + interval + 'ms', err)
+      return new Promise((resolve) =>
+        setTimeout(() => resolve(retry(fn, retriesLeft - 1, interval * 2)), interval)
+      ).then(() => fn())
+    }
   })
 }
 
@@ -110,10 +112,10 @@ async function download(scratchDir: string, url: string) {
  * Initialise CouchDB and set the admin user and password
  *
  */
-export const setupCouchDb = async () => {
+export const setupCouchDb = async (host: string, port: number) => {
   await retry(() =>
     axios.post(
-      'http://127.0.0.1:15984/_cluster_setup',
+      `http://${host}:${port}/_cluster_setup`,
       {
         action: 'enable_single_node',
         username: 'icure',
@@ -146,11 +148,13 @@ export const bootstrapCloudKraken = async (
   login = 'john',
   passwordHash = '1796980233375ccd113c972d946b2c4a7892e4f69c60684cfa730150047f9c0b', //LetMeIn
   groupId = 'xx',
-  groupPassword = 'xx' // pragma: allowlist secret
+  groupPassword = 'xx', // pragma: allowlist secret
+  couchDbUrl = '127.0.0.1',
+  couchDbPort = 15984
 ) => {
   await axios
     .put(
-      'http://127.0.0.1:15984/icure-xx-base',
+      `http://${couchDbUrl}:${couchDbPort}/icure-xx-base`,
       {},
       {
         auth: { username: 'icure', password: 'icure' },
@@ -162,9 +166,10 @@ export const bootstrapCloudKraken = async (
     .catch(() => {
       /* DB might already exist */
     })
+
   await axios
     .post(
-      'http://127.0.0.1:15984/icure-xx-base',
+      `http://${couchDbUrl}:${couchDbPort}/icure-xx-base`,
       {
         _id: userId,
         login: login,
@@ -189,7 +194,7 @@ export const bootstrapCloudKraken = async (
   await retry(() =>
     axios
       .post(
-        'http://127.0.0.1:15984/icure-__-base',
+        `http://${couchDbUrl}:${couchDbPort}/icure-__-base`,
         {
           _id: `${groupId}:${userId}`,
           login: login,
@@ -226,7 +231,7 @@ export const bootstrapCloudKraken = async (
 
   await axios
     .post(
-      'http://127.0.0.1:15984/_users',
+      `http://${couchDbUrl}:${couchDbPort}/_users`,
       {
         _id: `org.couchdb.user:${groupId}`,
         name: groupId,
@@ -249,7 +254,7 @@ export const bootstrapCloudKraken = async (
   await retry(() =>
     axios
       .post(
-        'http://127.0.0.1:15984/icure-__-config',
+        `http://${couchDbUrl}:${couchDbPort}/icure-__-config`,
         {
           _id: groupId,
           java_type: 'org.taktik.icure.entities.Group',
