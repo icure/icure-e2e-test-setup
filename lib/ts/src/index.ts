@@ -15,7 +15,7 @@ const standardEnv = {
 }
 
 
-export const retry = (fn: () => Promise<any>, retriesLeft = 5, interval = 1000): Promise<any> => {
+export const retry = (fn: () => Promise<any>, retriesLeft = 10, interval = 2000): Promise<any> => {
   return fn().catch((err) => {
     if (retriesLeft > 0) {
       console.log('Retrying in ' + interval + 'ms', err)
