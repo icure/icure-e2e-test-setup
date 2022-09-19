@@ -17,10 +17,12 @@ const standardEnv = {
 
 export const retry = (fn: () => Promise<any>, retriesLeft = 5, interval = 1000): Promise<any> => {
   return fn().catch((err) => {
-    console.log('Retrying in ' + interval + 'ms', err)
-    return new Promise((resolve) =>
-      setTimeout(() => resolve(retry(fn, retriesLeft - 1, interval * 2)), interval)
-    ).then(() => fn())
+    if (retriesLeft > 0) {
+      console.log('Retrying in ' + interval + 'ms', err)
+      return new Promise((resolve) =>
+        setTimeout(() => resolve(retry(fn, retriesLeft - 1, interval * 2)), interval)
+      ).then(() => fn())
+    }
   })
 }
 
