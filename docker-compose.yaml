@@ -11,7 +11,7 @@ services:
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
 
   icure-oss-test:
-    image: taktik/kraken:${VERSION:-latest}
+    image: kraken-oss:arm64
     container_name: icure-oss-test
     ports:
       - "5005:5005"

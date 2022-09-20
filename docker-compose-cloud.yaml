@@ -11,7 +11,7 @@ services:
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
 
   kraken-1:
-    image: docker.taktik.be/icure/icure-kraken:${AS_VERSION:-latest}
+    image: kraken:arm64
     container_name: kraken-1
     ports:
       - "5005:5005"
@@ -26,7 +26,7 @@ services:
       - couchdb
 
   kraken-2:
-    image: docker.taktik.be/icure/icure-kraken:${AS_VERSION:-latest}
+    image: kraken:arm64
     container_name: kraken-2
     ports:
       - "5006:5005"
@@ -41,12 +41,13 @@ services:
       - couchdb
 
   haproxy:
-    image: docker.taktik.be/haproxy:2.4.17
+    image: haproxy:latest
     restart: always
     volumes:
-      - ./haproxy/:/etc/haproxy/
+      - ./haproxy/:/usr/local/etc/haproxy/
+      - ./test-sock/:/run/haproxy/
     ports:
-      - "8080:8080"
+      - "18080:8080"
 
   mock-msg-gw:
     image: docker.taktik.be/icure/mock:0.1.5-gd5c69a6ee4
