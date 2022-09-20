@@ -1,6 +1,6 @@
 {
   "name": "@icure/test-setup",
-  "version": "0.0.11",
+  "version": "0.0.14",
   "description": "A simple lib to launch containers used to setup local tests environment",
   "main": "index.ts",
   "repository": "https://github.com/icure-io/icure-e2e-test-setup",
