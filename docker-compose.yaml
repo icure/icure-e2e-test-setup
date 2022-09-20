@@ -27,6 +27,11 @@ services:
     depends_on:
       - couchdb
 
+  init-db:
+    build: ./docker/init_oss
+    depends_on:
+      - icure-oss-test
+
   mock-msg-gw:
     image: docker.taktik.be/icure/mock:0.1.5-gd5c69a6ee4
     container_name: mock
