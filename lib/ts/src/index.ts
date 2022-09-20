@@ -20,8 +20,8 @@ export const retry = (fn: () => Promise<any>, retriesLeft = 10, interval = 2000)
     if (retriesLeft > 0) {
       console.log('Retrying in ' + interval + 'ms', err)
       return new Promise((resolve) =>
-        setTimeout(() => resolve(retry(fn, retriesLeft - 1, interval * 2)), interval)
-      ).then(() => fn())
+        setTimeout(() => resolve(null), interval)
+      ).then(() => retry(fn, retriesLeft - 1, interval * 2))
     } else {
       throw err;
     }
@@ -151,7 +151,8 @@ export const bootstrapOssKraken = async (
   couchDbUrl = '127.0.0.1',
   couchDbPort = 15984
 ) => {
-  await axios
+  await retry( () =>
+    axios
     .post(
       `http://${couchDbUrl}:${couchDbPort}/icure-base`,
       {
@@ -174,6 +175,7 @@ export const bootstrapOssKraken = async (
         throw e
       }
     })
+  );
 };
 
 /**
