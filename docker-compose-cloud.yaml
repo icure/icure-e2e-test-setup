@@ -49,6 +49,12 @@ services:
     ports:
       - "18080:8080"
 
+  init-db:
+    build: docker/Dockerfile
+    depends_on:
+      - kraken-1
+      - kraken-2
+
   mock-msg-gw:
     image: docker.taktik.be/icure/mock:0.1.5-gd5c69a6ee4
     container_name: mock
