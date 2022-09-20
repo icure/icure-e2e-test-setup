@@ -22,6 +22,8 @@ export const retry = (fn: () => Promise<any>, retriesLeft = 10, interval = 2000)
       return new Promise((resolve) =>
         setTimeout(() => resolve(retry(fn, retriesLeft - 1, interval * 2)), interval)
       ).then(() => fn())
+    } else {
+      throw err;
     }
   })
 }
@@ -146,10 +148,12 @@ export const bootstrapOssKraken = async (
   userId: string,
   login = 'john',
   passwordHash = '1796980233375ccd113c972d946b2c4a7892e4f69c60684cfa730150047f9c0b', //LetMeIn
+  couchDbUrl = '127.0.0.1',
+  couchDbPort = 15984
 ) => {
   await axios
     .post(
-      'http://127.0.0.1:15984/icure-base',
+      `http://${couchDbUrl}:${couchDbPort}/icure-base`,
       {
         _id: userId,
         login: login,
