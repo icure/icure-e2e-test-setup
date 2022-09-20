@@ -6,7 +6,7 @@ The library is published on npmjs.com as [@icure/test-setup](https://www.npmjs.c
 In order to use the library, you need to add it to your project as a dev dependency:
 
 ```bash
-yarn add @icure/test-setup --dev
+npm install @icure/test-setup --save-dev
 ```
 
 ## Usage

@@ -50,7 +50,7 @@ services:
       - "18080:8080"
 
   init-db:
-    build: docker/Dockerfile
+    build: ./docker/init_kraken
     depends_on:
       - kraken-1
       - kraken-2
