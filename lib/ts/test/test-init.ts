@@ -1,6 +1,6 @@
-import { bootstrapOssKraken, retry, setup } from '../src';
+import { bootstrapOssKraken, setup, bootstrapCloudKraken, cleanup, setupCouchDb } from '../src';
 import { checkCouchDbStarted, checkExistence } from './utils';
-import { bootstrapCloudKraken, cleanup, setupCouchDb } from '../dist';
+import {  } from '../dist';
 import uuid = require('uuid');
 
 describe("Test initialization", () => {
