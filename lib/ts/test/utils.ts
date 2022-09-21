@@ -28,3 +28,16 @@ export async function checkExistence(host: string, port: number, db: string, obj
     expect(status).to.equal(200)
   });
 }
+
+export async function checkAbsence(host: string, port: number, db: string, objectId = '') {
+  axios.get(
+    `http://${host}:${port}/${db}/${objectId}`,
+    {
+      auth: { username: 'icure', password: 'icure' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).catch( (error) => {
+      expect(error.response.status).to.eq(404);
+  });
+}

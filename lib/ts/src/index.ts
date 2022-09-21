@@ -335,8 +335,15 @@ export const bootstrapCloudKraken = async (
   )
 };
 
-
-export const setUpGroup = async (
+/**
+ * Creates a group with a random ID and password using the IccApi
+ *
+ * @param adminLogin the login of an admin user
+ * @param adminPassword the password of the user
+ * @param fetchImpl the fetch implementation
+ * @param host the Kraken API URL
+ */
+export const createGroup = async (
   adminLogin: string,
   adminPassword: string,
   fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
@@ -355,4 +362,64 @@ export const setUpGroup = async (
       users: [],
       healthcareParties: []
     }));
+};
+
+/**
+ * Soft deletes a group using the IccApi
+ *
+ * @param adminLogin the login of an admin user
+ * @param adminPassword the password of the user
+ * @param groupId the id of the group to delete
+ * @param fetchImpl the fetch implementation
+ * @param host the Kraken API URL
+ */
+export const softDeleteGroup = async (
+  adminLogin: string,
+  adminPassword: string,
+  groupId: string,
+  fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
+  host = 'http://127.0.0.1:16044/rest/v1'
+): Promise<Group> => {
+  const api = await Api(host, adminLogin, adminPassword, undefined, fetchImpl);
+  return await api.groupApi.deleteGroup(groupId);
+};
+
+export const hardDeleteGroup = async (
+  adminLogin: string,
+  adminPassword: string,
+  groupId: string,
+  couchDbUrl = 'http://127.0.0.1:15984'
+) => {
+  await axios
+    .delete(
+      `${couchDbUrl}/icure-${groupId}-base`,
+      {
+        auth: { username: adminLogin, password: adminPassword },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+  await axios
+    .delete(
+      `${couchDbUrl}/icure-${groupId}-healthdata`,
+      {
+        auth: { username: adminLogin, password: adminPassword },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+  await axios
+    .delete(
+      `${couchDbUrl}/icure-${groupId}-patient`,
+      {
+        auth: { username: adminLogin, password: adminPassword },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 };
