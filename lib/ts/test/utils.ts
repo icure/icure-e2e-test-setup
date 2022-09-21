@@ -12,3 +12,19 @@ export async function checkCouchDbStarted() {
     expect(couchdb).to.equal('Welcome')
   })
 }
+
+export async function checkExistence(host: string, port: number, db: string, objectId = '') {
+  await retry(async () => {
+    const {
+      status: status,
+    } = await axios.get(
+      `http://${host}:${port}/${db}/${objectId}`,
+      {
+        auth: { username: 'icure', password: 'icure' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    expect(status).to.equal(200)
+  });
+}
