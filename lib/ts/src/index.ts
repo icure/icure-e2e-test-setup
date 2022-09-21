@@ -384,6 +384,14 @@ export const softDeleteGroup = async (
   return await api.groupApi.deleteGroup(groupId);
 };
 
+/**
+ * Performs hard deletion of the databases of a group
+ *
+ * @param adminLogin a database admin login
+ * @param adminPassword the admin user password
+ * @param groupId the group to delete
+ * @param couchDbUrl the couchDbUrl
+ */
 export const hardDeleteGroup = async (
   adminLogin: string,
   adminPassword: string,
