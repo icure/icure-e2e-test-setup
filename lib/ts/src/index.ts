@@ -1,10 +1,11 @@
-import * as https from 'https'
-import * as fs from 'fs'
-import * as path from 'path'
-import { exec } from 'child_process'
-import * as util from 'util'
+import * as https from 'https';
+import * as fs from 'fs';
+import * as path from 'path';
+import { exec } from 'child_process';
+import * as util from 'util';
 import axios from 'axios';
-import internal from 'stream';
+import { Api, DatabaseInitialisation, Group, Patient } from '@icure/api';
+import uuid = require('uuid');
 
 const standardEnv = {
   COUCHDB_PORT: '15984',
@@ -33,7 +34,7 @@ function fullUrl(composeFile: string) {
 }
 
 /**
- * Setup a full environment for the tests. This will download the docker-compose files and start the containers.
+ * Set up a full environment for the tests. This will download the docker-compose files and start the containers.
  *
  * The docker compose can embed extra files that will be extracted in the scratchDir (see docker-compose-cloud.yaml for an example)
  *
@@ -142,17 +143,20 @@ export const setupCouchDb = async (host: string, port: number) => {
  * @param userId The user id of the user that will be created
  * @param login The login of the user that will be created
  * @param passwordHash The password hash of the user that will be created (AES-256 encoded)
+ * @param couchDbIp: the IP of the CouchDB instance to bootstrap
+ * @param couchDbPort: the port of the CouchDB instance to boostrap
  */
 export const bootstrapOssKraken = async (
   userId: string,
   login = 'john',
   passwordHash = '1796980233375ccd113c972d946b2c4a7892e4f69c60684cfa730150047f9c0b', //LetMeIn
-  couchDbUrl = '127.0.0.1',
+  couchDbIp = '127.0.0.1',
   couchDbPort = 15984
 ) => {
-  await axios
+  await retry( () =>
+    axios
     .post(
-      `http://${couchDbUrl}:${couchDbPort}/icure-base`,
+      `http://${couchDbIp}:${couchDbPort}/icure-base`,
       {
         _id: userId,
         login: login,
@@ -173,6 +177,7 @@ export const bootstrapOssKraken = async (
         throw e
       }
     })
+  );
 };
 
 /**
@@ -183,6 +188,8 @@ export const bootstrapOssKraken = async (
  * @param passwordHash The password hash of the user that will be created (AES-256 encoded)
  * @param groupId The group id of the master group that will be created
  * @param groupPassword The password of the master group that will be created
+ * @param couchDbIp: the IP of the CouchDB instance to bootstrap
+ * @param couchDbPort: the port of the CouchDB instance to boostrap
  */
 export const bootstrapCloudKraken = async (
   userId: string,
@@ -190,12 +197,12 @@ export const bootstrapCloudKraken = async (
   passwordHash = '1796980233375ccd113c972d946b2c4a7892e4f69c60684cfa730150047f9c0b', //LetMeIn
   groupId = 'xx',
   groupPassword = 'xx', // pragma: allowlist secret
-  couchDbUrl = '127.0.0.1',
+  couchDbIp = '127.0.0.1',
   couchDbPort = 15984
 ) => {
   await axios
     .put(
-      `http://${couchDbUrl}:${couchDbPort}/icure-xx-base`,
+      `http://${couchDbIp}:${couchDbPort}/icure-${groupId}-base`,
       {},
       {
         auth: { username: 'icure', password: 'icure' },
@@ -210,7 +217,7 @@ export const bootstrapCloudKraken = async (
 
   await axios
     .post(
-      `http://${couchDbUrl}:${couchDbPort}/icure-xx-base`,
+      `http://${couchDbIp}:${couchDbPort}/icure-${groupId}-base`,
       {
         _id: userId,
         login: login,
@@ -235,7 +242,7 @@ export const bootstrapCloudKraken = async (
   await retry(() =>
     axios
       .post(
-        `http://${couchDbUrl}:${couchDbPort}/icure-__-base`,
+        `http://${couchDbIp}:${couchDbPort}/icure-__-base`,
         {
           _id: `${groupId}:${userId}`,
           login: login,
@@ -272,7 +279,7 @@ export const bootstrapCloudKraken = async (
 
   await axios
     .post(
-      `http://${couchDbUrl}:${couchDbPort}/_users`,
+      `http://${couchDbIp}:${couchDbPort}/_users`,
       {
         _id: `org.couchdb.user:${groupId}`,
         name: groupId,
@@ -295,7 +302,7 @@ export const bootstrapCloudKraken = async (
   await retry(() =>
     axios
       .post(
-        `http://${couchDbUrl}:${couchDbPort}/icure-__-config`,
+        `http://${couchDbIp}:${couchDbPort}/icure-__-config`,
         {
           _id: groupId,
           java_type: 'org.taktik.icure.entities.Group',
@@ -325,4 +332,102 @@ export const bootstrapCloudKraken = async (
         }
       })
   )
+};
+
+/**
+ * Creates a group with a random ID and password using the IccApi
+ *
+ * @param adminLogin the login of an admin user
+ * @param adminPassword the password of the user
+ * @param groupId the id of the group to create
+ * @param fetchImpl the implementation of the fetch function
+ * @param host the Kraken API URL
+ */
+export const createGroup = async (
+  adminLogin: string,
+  adminPassword: string,
+  groupId: string,
+  fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
+  host = 'http://127.0.0.1:16044/rest/v1'
+): Promise<Group> => {
+  const api = await Api(host, adminLogin, adminPassword, undefined, fetchImpl);
+  const groupName = groupId.substring(0,5);
+  const groupPwd = uuid();
+  return await api.groupApi.createGroup(
+    groupId,
+    groupName,
+    groupPwd,
+    undefined, undefined, undefined, undefined, undefined,
+    new DatabaseInitialisation({
+      users: [],
+      healthcareParties: []
+    }));
+};
+
+/**
+ * Soft deletes a group using the IccApi
+ *
+ * @param adminLogin the login of an admin user
+ * @param adminPassword the password of the user
+ * @param groupId the id of the group to delete
+ * @param fetchImpl the implementation of the fetch function
+ * @param host the Kraken API URL
+ */
+export const softDeleteGroup = async (
+  adminLogin: string,
+  adminPassword: string,
+  groupId: string,
+  fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
+  host = 'http://127.0.0.1:16044/rest/v1'
+): Promise<Group> => {
+  const api = await Api(host, adminLogin, adminPassword, undefined, fetchImpl);
+  return await api.groupApi.deleteGroup(groupId);
+};
+
+/**
+ * Performs hard deletion of the databases of a group
+ *
+ * @param adminLogin a database admin login
+ * @param adminPassword the admin user password
+ * @param groupId the group to delete
+ * @param couchDbUrl the couchDbUrl
+ */
+export const hardDeleteGroup = async (
+  adminLogin: string,
+  adminPassword: string,
+  groupId: string,
+  couchDbUrl = 'http://127.0.0.1:15984'
+) => {
+  await axios
+    .delete(
+      `${couchDbUrl}/icure-${groupId}-base`,
+      {
+        auth: { username: adminLogin, password: adminPassword },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+  await axios
+    .delete(
+      `${couchDbUrl}/icure-${groupId}-healthdata`,
+      {
+        auth: { username: adminLogin, password: adminPassword },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+  await axios
+    .delete(
+      `${couchDbUrl}/icure-${groupId}-patient`,
+      {
+        auth: { username: adminLogin, password: adminPassword },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 };
