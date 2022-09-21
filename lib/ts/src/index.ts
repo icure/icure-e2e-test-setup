@@ -4,7 +4,7 @@ import * as path from 'path';
 import { exec } from 'child_process';
 import * as util from 'util';
 import axios from 'axios';
-import { Api, DatabaseInitialisation, Group } from '@icure/api';
+import { Api, DatabaseInitialisation, Group, Patient } from '@icure/api';
 import uuid = require('uuid');
 
 const standardEnv = {
@@ -203,7 +203,7 @@ export const bootstrapCloudKraken = async (
 ) => {
   await axios
     .put(
-      `http://${couchDbIp}:${couchDbPort}/icure-xx-base`,
+      `http://${couchDbIp}:${couchDbPort}/icure-${groupId}-base`,
       {},
       {
         auth: { username: 'icure', password: 'icure' },
@@ -218,7 +218,7 @@ export const bootstrapCloudKraken = async (
 
   await axios
     .post(
-      `http://${couchDbIp}:${couchDbPort}/icure-xx-base`,
+      `http://${couchDbIp}:${couchDbPort}/icure-${groupId}-base`,
       {
         _id: userId,
         login: login,
@@ -340,17 +340,18 @@ export const bootstrapCloudKraken = async (
  *
  * @param adminLogin the login of an admin user
  * @param adminPassword the password of the user
- * @param fetchImpl the fetch implementation
+ * @param groupId the id of the group to create
+ * @param fetchImpl the implementation of the fetch function
  * @param host the Kraken API URL
  */
 export const createGroup = async (
   adminLogin: string,
   adminPassword: string,
+  groupId: string,
   fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
   host = 'http://127.0.0.1:16044/rest/v1'
 ): Promise<Group> => {
   const api = await Api(host, adminLogin, adminPassword, undefined, fetchImpl);
-  const groupId = uuid()
   const groupName = groupId.substring(0,5);
   const groupPwd = uuid();
   return await api.groupApi.createGroup(
@@ -370,7 +371,7 @@ export const createGroup = async (
  * @param adminLogin the login of an admin user
  * @param adminPassword the password of the user
  * @param groupId the id of the group to delete
- * @param fetchImpl the fetch implementation
+ * @param fetchImpl the implementation of the fetch function
  * @param host the Kraken API URL
  */
 export const softDeleteGroup = async (

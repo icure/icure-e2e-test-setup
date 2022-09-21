@@ -1,7 +1,6 @@
 import 'isomorphic-fetch';
-import { setup, createGroup, softDeleteGroup, hardDeleteGroup } from '../src';
+import { setup, createGroup, softDeleteGroup, hardDeleteGroup, bootstrapCloudKraken, cleanup, setupCouchDb } from '../src';
 import { checkAbsence, checkCouchDbStarted, checkExistence } from './utils';
-import { bootstrapCloudKraken, cleanup, setupCouchDb } from '../dist';
 import uuid = require('uuid');
 import { expect } from 'chai';
 import { before } from 'mocha';
@@ -23,7 +22,7 @@ describe("Test groups", function () {
   });
 
   it("Should be able to create a group and soft delete it", async () => {
-    const group = await createGroup('john', 'LetMeIn', fetch);
+    const group = await createGroup('john', 'LetMeIn', uuid(), fetch);
     await checkExistence('127.0.0.1', 15984, `icure-${group.id}-healthdata`)
     await checkExistence('127.0.0.1', 15984, `icure-${group.id}-patient`)
     await checkExistence('127.0.0.1', 15984, `icure-${group.id}-base`)
@@ -32,7 +31,7 @@ describe("Test groups", function () {
   });
 
   it("Should be able to create a group and hard delete it", async () => {
-    const group = await createGroup('john', 'LetMeIn', fetch);
+    const group = await createGroup('john', 'LetMeIn', uuid(), fetch);
     await checkExistence('127.0.0.1', 15984, `icure-${group.id}-healthdata`)
     await checkExistence('127.0.0.1', 15984, `icure-${group.id}-patient`)
     await checkExistence('127.0.0.1', 15984, `icure-${group.id}-base`)
