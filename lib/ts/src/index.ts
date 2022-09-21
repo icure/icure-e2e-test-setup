@@ -14,20 +14,19 @@ const standardEnv = {
   ...process.env,
 }
 
-
-export const retry = (fn: () => Promise<any>, retriesLeft = 10, interval = 2000): Promise<any> => {
-  return fn().catch((err) => {
-    if (retriesLeft > 0) {
-      console.log('Retrying in ' + interval + 'ms', err)
-      return new Promise((resolve) =>
-        setTimeout(() => resolve(retry(fn, retriesLeft - 1, interval * 2)), interval)
-      ).then(() => fn())
-    } else {
-      throw err;
-    }
-  })
+export function sleep(ms: number): Promise<any> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+export function retry<P>(fn: () => Promise<P>, retryCount = 3, sleepTime = 2000, exponentialFactor = 2): Promise<P> {
+  let retry = 0
+  const doFn: () => Promise<P> = () => {
+    return fn().catch((e) =>
+      retry++ < retryCount ? (sleepTime && sleep((sleepTime *= exponentialFactor)).then(() => doFn())) || doFn() : Promise.reject(e)
+    )
+  }
+  return doFn()
+}
 
 function fullUrl(composeFile: string) {
   return composeFile.startsWith('https') ? composeFile : `https://raw.githubusercontent.com/icure-io/icure-e2e-test-setup/master/${composeFile}.yaml`
