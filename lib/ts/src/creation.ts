@@ -1,4 +1,4 @@
-import { Api, Apis, HealthcareParty, hex2ua, Patient, ua2hex, User } from '@icure/api';
+import { Api, Apis, Device, HealthcareParty, hex2ua, Patient, ua2hex, User } from '@icure/api';
 import uuid = require('uuid');
 import { retry } from './index';
 import { webcrypto } from 'crypto';
@@ -12,7 +12,61 @@ export interface MasterCredentials {
 }
 
 /**
- * Creates a new User with a related patient using the provided parameters
+ * Creates a HCP directly using the admin user
+ *
+ * @param adminLogin the admin login
+ * @param adminPassword the admin password
+ * @param groupId the group where to create the HCP
+ * @param fetchImpl the implementation of the fetch function
+ * @param host the Kraken API URL
+ */
+export const createMasterHcp = async (
+  adminLogin: string,
+  adminPassword: string,
+  groupId: string,
+  fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
+  host = 'http://127.0.0.1:16044/rest/v1'
+): Promise<MasterCredentials> => {
+  const api = await Api(host, adminLogin, adminPassword, webcrypto as any, fetchImpl);
+  const hcpId = uuid();
+  const masterLogin = `master@${hcpId.substring(0,6)}.icure`;
+  const masterUser = await api.userApi.createUserInGroup(
+    groupId,
+    new User({
+      id: uuid(),
+      name: `Master HCP`,
+      login: masterLogin,
+      email: masterLogin,
+      healthcarePartyId: hcpId
+    })
+  );
+  const token = await api.userApi.getTokenInGroup(groupId, masterUser.id!, uuid(), uuid(), 24 * 60 * 60);
+  const { publicKey, privateKey } = await api.cryptoApi.RSA.generateKeyPair();
+  const publicKeyHex = ua2hex(
+    await api.cryptoApi.RSA.exportKey(publicKey, 'spki')
+  );
+  const privateKeyHex = ua2hex(
+    await api.cryptoApi.RSA.exportKey(privateKey, 'pkcs8')
+  );
+  await retry(async () => {
+      const masterApi = await Api(host, masterLogin, token, undefined, fetchImpl);
+      await masterApi.healthcarePartyApi.createHealthcareParty(
+        new HealthcareParty({
+          id: hcpId,
+          firstName: 'Master',
+          lastName: 'HCP',
+          publicKey: publicKeyHex
+        })
+      );
+    },
+    5);
+
+  return { login: masterLogin, password: token, hcpId: hcpId, publicKey: publicKeyHex, privateKey: privateKeyHex };
+
+}
+
+/**
+ * Creates a new User with a related Patient using the provided parameters
  *
  * @param hcpApi: an instance of the Icc Api with the hcp credentials and keys
  * @param userLogin the login of the user
@@ -73,61 +127,7 @@ export const createPatient = async (
 };
 
 /**
- * Creates a HCP directly using the admin user
- *
- * @param adminLogin the admin login
- * @param adminPassword the admin password
- * @param groupId the group where to create the HCP
- * @param fetchImpl the implementation of the fetch function
- * @param host the Kraken API URL
- */
-export const createMasterHcp = async (
-  adminLogin: string,
-  adminPassword: string,
-  groupId: string,
-  fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
-  host = 'http://127.0.0.1:16044/rest/v1'
-): Promise<MasterCredentials> => {
-  const api = await Api(host, adminLogin, adminPassword, webcrypto as any, fetchImpl);
-  const hcpId = uuid();
-  const masterLogin = `master@${hcpId.substring(0,6)}.icure`;
-  const masterUser = await api.userApi.createUserInGroup(
-    groupId,
-    new User({
-      id: uuid(),
-      name: `Master HCP`,
-      login: masterLogin,
-      email: masterLogin,
-      healthcarePartyId: hcpId
-    })
-  );
-  const token = await api.userApi.getTokenInGroup(groupId, masterUser.id!, uuid(), uuid(), 24 * 60 * 60);
-  const { publicKey, privateKey } = await api.cryptoApi.RSA.generateKeyPair();
-  const publicKeyHex = ua2hex(
-    await api.cryptoApi.RSA.exportKey(publicKey, 'spki')
-  );
-  const privateKeyHex = ua2hex(
-    await api.cryptoApi.RSA.exportKey(privateKey, 'pkcs8')
-  );
-  await retry(async () => {
-    const masterApi = await Api(host, masterLogin, token, undefined, fetchImpl);
-    await masterApi.healthcarePartyApi.createHealthcareParty(
-      new HealthcareParty({
-        id: hcpId,
-        firstName: 'Master',
-        lastName: 'HCP',
-        publicKey: publicKeyHex
-      })
-    );
-  },
-  5);
-
-  return { login: masterLogin, password: token, hcpId: hcpId, publicKey: publicKeyHex, privateKey: privateKeyHex };
-
-}
-
-/**
- * Creates a new User with a related patient using the provided parameters
+ * Creates a new User with a related Healthcare Party using the provided parameters
  *
  * @param responsibleLogin the login of a user that can create a HCP
  * @param responsiblePassword the password of the user that can create a HCP
@@ -160,9 +160,52 @@ export const createHealthcareParty = async (
       id: uuid(),
       name: userLogin,
       login: userLogin,
+      email: userLogin,
       healthcarePartyId: hcp.id,
     })
   );
   await api.userApi.getToken(hcpUser.id!, uuid(), 24 * 60 * 60, userToken);
   return hcpUser;
+};
+
+
+/**
+ * Creates a new User with a related Device using the provided parameters
+ *
+ * @param responsibleLogin the login of a user that can create a Device
+ * @param responsiblePassword the password of the user that can create a Device
+ * @param userLogin the login of the user
+ * @param userToken the auth token that will be assigned to the user
+ * @param publicKey the public key to use for the user
+ * @param fetchImpl the implementation of the fetch function
+ * @param host the Kraken API URL
+ */
+export const createDevice = async (
+  responsibleLogin: string,
+  responsiblePassword: string,
+  userLogin: string,
+  userToken: string,
+  publicKey: string,
+  fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
+  host = 'http://127.0.0.1:16044/rest/v1'
+): Promise<User> => {
+  const api = await Api(host, responsibleLogin, responsiblePassword, webcrypto as any, fetchImpl);
+  const device = await api.deviceApi.createDevice(
+    new Device({
+      id: uuid(),
+      serialNumber: uuid().substring(0,6),
+      publicKey: publicKey
+    })
+  );
+  const deviceUser = await api.userApi.createUser(
+    new User({
+      id: uuid(),
+      name: userLogin,
+      login: userLogin,
+      email: userLogin,
+      deviceId: device.id,
+    })
+  );
+  await api.userApi.getToken(deviceUser.id!, uuid(), 24 * 60 * 60, userToken);
+  return deviceUser;
 };

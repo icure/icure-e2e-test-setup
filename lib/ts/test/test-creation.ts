@@ -4,7 +4,7 @@ import uuid = require('uuid');
 import { before } from 'mocha';
 import { Api, hex2ua, ua2hex } from '@icure/api';
 import {webcrypto} from 'crypto';
-import { createHealthcareParty, createMasterHcp, createPatient, MasterCredentials } from '../src/creation';
+import { createDevice, createHealthcareParty, createMasterHcp, createPatient, MasterCredentials } from '../src/creation';
 import { checkExistence } from './utils';
 import { tmpdir } from 'os';
 import { TextDecoder, TextEncoder } from 'util';
@@ -85,6 +85,26 @@ describe("Test creation", function () {
       fetch
     );
     await checkExistence('127.0.0.1', 15984, `icure-${groupId}-patient`, user.patientId!);
+    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, user.id!);
+  });
+
+  it("Should be able to create a device", async () => {
+    const api = await Api('http://127.0.0.1:16044/rest/v1', masterCredentials.login, masterCredentials.password, webcrypto as any, fetch);
+
+    const { publicKey, privateKey } = await api.cryptoApi.RSA.generateKeyPair();
+    const publicKeyHex = ua2hex(
+      await api.cryptoApi.RSA.exportKey(publicKey, 'spki')
+    );
+
+    const user = await createDevice(
+      masterCredentials.login,
+      masterCredentials.password,
+      `${uuid().substring(0,6)}@icure.com`,
+      uuid(),
+      publicKeyHex,
+      fetch
+    );
+    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, user.deviceId!);
     await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, user.id!);
   });
 
