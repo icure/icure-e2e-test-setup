@@ -18,6 +18,9 @@ export interface MasterCredentials {
  * @param userLogin the login of the user
  * @param userToken the auth token that will be assigned to the user
  * @param publicKey the public key to use for the user
+ * @param privateKey the private key to use for the user
+ * @param fetchImpl the implementation of the fetch function
+ * @param host the Kraken API URL
  */
 export const createPatient = async (
   hcpApi: Apis,
@@ -116,7 +119,8 @@ export const createMasterHcp = async (
         publicKey: publicKeyHex
       })
     );
-  });
+  },
+  5);
 
   return { login: masterLogin, password: token, hcpId: hcpId, publicKey: publicKeyHex, privateKey: privateKeyHex };
 

@@ -1,9 +1,10 @@
 import 'isomorphic-fetch';
-import { setup, createGroup, softDeleteGroup, hardDeleteGroup, bootstrapCloudKraken, cleanup, setupCouchDb } from '../src';
+import { setup, bootstrapCloudKraken, cleanup, setupCouchDb } from '../src';
 import { checkAbsence, checkCouchDbStarted, checkExistence } from './utils';
 import uuid = require('uuid');
 import { expect } from 'chai';
 import { before } from 'mocha';
+import { createGroup, hardDeleteGroup, softDeleteGroup } from '../dist';
 
 describe("Test groups", function () {
 
