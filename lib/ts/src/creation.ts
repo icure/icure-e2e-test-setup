@@ -54,7 +54,8 @@ export const createMasterHcpUser = async (
         publicKey: publicKeyHex,
       }),
     )
-  }, 5)
+  },
+  5)
 
   return { login: masterLogin, password: token, dataOwnerId: hcpId, publicKey: publicKeyHex, privateKey: privateKeyHex }
 }
