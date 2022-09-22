@@ -1,5 +1,5 @@
 import 'isomorphic-fetch';
-import { setup, createGroup, bootstrapCloudKraken, cleanup, setupCouchDb } from '../src';
+import { setup, bootstrapCloudKraken, cleanup, setupCouchDb } from '../src';
 import uuid = require('uuid');
 import { before } from 'mocha';
 import { Api, hex2ua, ua2hex } from '@icure/api';
@@ -8,6 +8,7 @@ import { createHealthcareParty, createMasterHcp, createPatient, MasterCredential
 import { checkExistence } from './utils';
 import { tmpdir } from 'os';
 import { TextDecoder, TextEncoder } from 'util';
+import { createGroup } from '../dist';
 
 (global as any).localStorage = new (require('node-localstorage').LocalStorage)(tmpdir(), 5 * 1024**3)
 ;(global as any).fetch = fetch
