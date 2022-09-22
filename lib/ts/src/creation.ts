@@ -210,3 +210,45 @@ export const createDeviceUser = async (api: Apis, userLogin: string, userToken: 
     privateKey: privateKeyHex,
   }
 }
+
+
+/**
+ * Creates a new User with a related Device using the provided parameters
+ *
+ * @param responsibleLogin the login of a user that can create a Device
+ * @param responsiblePassword the password of the user that can create a Device
+ * @param userLogin the login of the user
+ * @param userToken the auth token that will be assigned to the user
+ * @param publicKey the public key to use for the user
+ * @param fetchImpl the implementation of the fetch function
+ * @param host the Kraken API URL
+ */
+export const createDevice = async (
+  responsibleLogin: string,
+  responsiblePassword: string,
+  userLogin: string,
+  userToken: string,
+  publicKey: string,
+  fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
+  host = 'http://127.0.0.1:16044/rest/v1'
+): Promise<User> => {
+  const api = await Api(host, responsibleLogin, responsiblePassword, webcrypto as any, fetchImpl);
+  const device = await api.deviceApi.createDevice(
+    new Device({
+      id: uuid(),
+      serialNumber: uuid().substring(0,6),
+      publicKey: publicKey
+    })
+  );
+  const deviceUser = await api.userApi.createUser(
+    new User({
+      id: uuid(),
+      name: userLogin,
+      login: userLogin,
+      email: userLogin,
+      deviceId: device.id,
+    })
+  );
+  await api.userApi.getToken(deviceUser.id!, uuid(), 24 * 60 * 60, userToken);
+  return deviceUser;
+};
