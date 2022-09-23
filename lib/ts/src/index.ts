@@ -126,11 +126,12 @@ async function download(scratchDir: string, url: string) {
 /**
  * Initialise CouchDB and set the admin user and password
  *
+ * @param couchDbUrl: the URL of the CouchDB instance to bootstrap
  */
-export const setupCouchDb = async (host: string, port: number) => {
+export const setupCouchDb = async (couchDbUrl: string) => {
   await retry(() =>
     axios.post(
-      `http://${host}:${port}/_cluster_setup`,
+      `${couchDbUrl}/_cluster_setup`,
       {
         action: 'enable_single_node',
         username: 'icure',
@@ -155,20 +156,18 @@ export const setupCouchDb = async (host: string, port: number) => {
  * @param userId The user id of the user that will be created
  * @param login The login of the user that will be created
  * @param passwordHash The password hash of the user that will be created (AES-256 encoded)
- * @param couchDbIp: the IP of the CouchDB instance to bootstrap
- * @param couchDbPort: the port of the CouchDB instance to boostrap
+ * @param couchDbUrl: the URL of the CouchDB instance to bootstrap
  */
 export const bootstrapOssKraken = async (
   userId: string,
   login = 'john',
   passwordHash = '1796980233375ccd113c972d946b2c4a7892e4f69c60684cfa730150047f9c0b', //LetMeIn
-  couchDbIp = '127.0.0.1',
-  couchDbPort = 15984,
+  couchDbUrl = 'http://127.0.0.1:15984',
 ) => {
   await retry(() =>
     axios
       .post(
-        `http://${couchDbIp}:${couchDbPort}/icure-base`,
+        `${couchDbUrl}/icure-base`,
         {
           _id: userId,
           login: login,
@@ -200,8 +199,7 @@ export const bootstrapOssKraken = async (
  * @param passwordHash The password hash of the user that will be created (AES-256 encoded)
  * @param groupId The group id of the master group that will be created
  * @param groupPassword The password of the master group that will be created
- * @param couchDbIp: the IP of the CouchDB instance to bootstrap
- * @param couchDbPort: the port of the CouchDB instance to boostrap
+ * @param couchDbUrl: the URL of the CouchDB instance to bootstrap
  */
 export const bootstrapCloudKraken = async (
   userId: string,
@@ -209,12 +207,11 @@ export const bootstrapCloudKraken = async (
   passwordHash = '1796980233375ccd113c972d946b2c4a7892e4f69c60684cfa730150047f9c0b', //LetMeIn
   groupId = 'xx',
   groupPassword = 'xx', // pragma: allowlist secret
-  couchDbIp = '127.0.0.1',
-  couchDbPort = 15984,
+  couchDbUrl = 'http://127.0.0.1:15984',
 ) => {
   await axios
     .put(
-      `http://${couchDbIp}:${couchDbPort}/icure-${groupId}-base`,
+      `${couchDbUrl}/icure-${groupId}-base`,
       {},
       {
         auth: { username: 'icure', password: 'icure' },
@@ -229,7 +226,7 @@ export const bootstrapCloudKraken = async (
 
   await axios
     .post(
-      `http://${couchDbIp}:${couchDbPort}/icure-${groupId}-base`,
+      `${couchDbUrl}/icure-${groupId}-base`,
       {
         _id: userId,
         login: login,
@@ -254,7 +251,7 @@ export const bootstrapCloudKraken = async (
   await retry(() =>
     axios
       .post(
-        `http://${couchDbIp}:${couchDbPort}/icure-__-base`,
+        `${couchDbUrl}/icure-__-base`,
         {
           _id: `${groupId}:${userId}`,
           login: login,
@@ -290,7 +287,7 @@ export const bootstrapCloudKraken = async (
 
   await axios
     .post(
-      `http://${couchDbIp}:${couchDbPort}/_users`,
+      `${couchDbUrl}/_users`,
       {
         _id: `org.couchdb.user:${groupId}`,
         name: groupId,
@@ -313,7 +310,7 @@ export const bootstrapCloudKraken = async (
   await retry(() =>
     axios
       .post(
-        `http://${couchDbIp}:${couchDbPort}/icure-__-config`,
+        `${couchDbUrl}/icure-__-config`,
         {
           _id: groupId,
           java_type: 'org.taktik.icure.entities.Group',
@@ -354,9 +351,9 @@ export const bootstrapCloudKraken = async (
 export async function checkIfDockerIsOnline(scratchDir: string, compose: string): Promise<boolean> {
   try {
     const composeFile = path.join(scratchDir, path.basename(fullUrl(compose)))
-    const { stdout, stderr } = await util.promisify(exec)(`/usr/local/bin/docker compose -f '${composeFile}' ps --format json`, { env: standardEnv })
+    const { stdout } = await util.promisify(exec)(`/usr/local/bin/docker compose -f '${composeFile}' ps --format json`, { env: standardEnv })
     const containers = JSON.parse(stdout) as DockerProcess[]
-    return !!containers && containers.length > 0 && containers.every((element, index) => !!element.State && element.State === 'running')
+    return !!containers && containers.length > 0 && containers.every((element) => !!element.State && element.State === 'running')
   } catch (e) {
     return false
   }
