@@ -11,12 +11,6 @@ export interface UserCredentials {
   privateKey: string
 }
 
-export interface AuthenticationResult {
-  userId: string
-  dataOwnerId: string
-  password: string
-}
-
 /**
  * Creates a HCP directly using the admin user
  *
@@ -224,13 +218,19 @@ export const createDeviceUser = async (api: Apis, userLogin: string, userToken: 
  * @param userLogin the login of the user
  * @param userToken the auth token that will be assigned to the user
  * @param publicKey the public key to use for the user
+ * @param privateKey the private key to use for the user
  */
-export const createDevice = async (api: Apis, userLogin: string, userToken: string, publicKey: string): Promise<AuthenticationResult> => {
+export const createDeviceUser = async (api: Apis, userLogin: string, userToken: string, publicKey?: string, privateKey?: string): Promise<UserCredentials> => {
+  const { publicKey: newPublicKey, privateKey: newPrivateKey } = await api.cryptoApi.RSA.generateKeyPair()
+
+  const publicKeyHex = !!publicKey && !!privateKey ? publicKey : ua2hex(await api.cryptoApi.RSA.exportKey(newPublicKey, 'spki'))
+  const privateKeyHex = !!publicKey && !!privateKey ? privateKey : ua2hex(await api.cryptoApi.RSA.exportKey(newPrivateKey, 'pkcs8'))
+
   const device = await api.deviceApi.createDevice(
     new Device({
       id: uuid(),
       serialNumber: uuid().substring(0, 6),
-      publicKey: publicKey,
+      publicKey: publicKeyHex,
     }),
   )
   const deviceUser = await api.userApi.createUser(
@@ -244,8 +244,10 @@ export const createDevice = async (api: Apis, userLogin: string, userToken: stri
   )
   const token = await api.userApi.getToken(deviceUser.id!, uuid(), 24 * 60 * 60, userToken)
   return {
-    userId: deviceUser.id!,
+    login: deviceUser.login!,
     dataOwnerId: device.id!,
     password: token,
+    publicKey: publicKeyHex,
+    privateKey: privateKeyHex,
   }
 }
