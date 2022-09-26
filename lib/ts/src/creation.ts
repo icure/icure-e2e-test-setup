@@ -3,18 +3,12 @@ import uuid = require('uuid')
 import { retry } from './index'
 import { webcrypto } from 'crypto'
 
-export interface MasterCredentials {
+export interface UserCredentials {
   login: string
   password: string
-  hcpId: string
+  dataOwnerId: string
   publicKey: string
   privateKey: string
-}
-
-export interface AuthenticationResult {
-  userId: string
-  dataOwnerId: string
-  password: string
 }
 
 /**
@@ -26,13 +20,13 @@ export interface AuthenticationResult {
  * @param fetchImpl the implementation of the fetch function
  * @param host the Kraken API URL
  */
-export const createMasterHcp = async (
+export const createMasterHcpUser = async (
   adminLogin: string,
   adminPassword: string,
   groupId: string,
   fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
   host = 'http://127.0.0.1:16044/rest/v1',
-): Promise<MasterCredentials> => {
+): Promise<UserCredentials> => {
   const api = await Api(host, adminLogin, adminPassword, webcrypto as any, fetchImpl)
   const hcpId = uuid()
   const masterLogin = `master@${hcpId.substring(0, 6)}.icure`
@@ -62,7 +56,7 @@ export const createMasterHcp = async (
     )
   }, 5)
 
-  return { login: masterLogin, password: token, hcpId: hcpId, publicKey: publicKeyHex, privateKey: privateKeyHex }
+  return { login: masterLogin, password: token, dataOwnerId: hcpId, publicKey: publicKeyHex, privateKey: privateKeyHex }
 }
 
 /**
@@ -76,21 +70,26 @@ export const createMasterHcp = async (
  * @param fetchImpl the implementation of the fetch function
  * @param host the Kraken API URL
  */
-export const createPatient = async (
+export const createPatientUser = async (
   hcpApi: Apis,
   userLogin: string,
   userToken: string,
-  publicKey: string,
-  privateKey: string,
+  publicKey?: string,
+  privateKey?: string,
   fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
   host = 'http://127.0.0.1:16044/rest/v1',
-): Promise<AuthenticationResult> => {
+): Promise<UserCredentials> => {
+  const { publicKey: newPublicKey, privateKey: newPrivateKey } = await hcpApi.cryptoApi.RSA.generateKeyPair()
+
+  const publicKeyHex = !!publicKey && !!privateKey ? publicKey : ua2hex(await hcpApi.cryptoApi.RSA.exportKey(newPublicKey, 'spki'))
+  const privateKeyHex = !!publicKey && !!privateKey ? privateKey : ua2hex(await hcpApi.cryptoApi.RSA.exportKey(newPrivateKey, 'pkcs8'))
+
   const user = await hcpApi.userApi.getCurrentUser()
   const rawPatient = new Patient({
     id: uuid(),
     firstName: uuid().substring(0, 6),
     lastName: uuid().substring(0, 6),
-    publicKey: publicKey,
+    publicKey: publicKeyHex,
   })
   const patient = (await hcpApi.patientApi.createPatientWithUser(user, await hcpApi.patientApi.newInstance(user, rawPatient))) as Patient
   const patientUser = await hcpApi.userApi.createUser(
@@ -106,8 +105,8 @@ export const createPatient = async (
 
   const api = await Api(host, userLogin, token, webcrypto as any, fetchImpl)
   api.cryptoApi.RSA.storeKeyPair(patient.id!, {
-    publicKey: api.cryptoApi.utils.spkiToJwk(hex2ua(publicKey)),
-    privateKey: api.cryptoApi.utils.pkcs8ToJwk(hex2ua(privateKey)),
+    publicKey: api.cryptoApi.utils.spkiToJwk(hex2ua(publicKeyHex)),
+    privateKey: api.cryptoApi.utils.pkcs8ToJwk(hex2ua(privateKeyHex)),
   })
 
   const patientWithDelegations = await api.patientApi.initDelegations(patient, patientUser)
@@ -120,9 +119,11 @@ export const createPatient = async (
   await hcpApi.patientApi.modifyPatientWithUser(user, patientToUpdate)
 
   return {
-    userId: patientUser.id!,
+    login: patientUser.login!,
     dataOwnerId: patient.id!,
     password: token,
+    publicKey: publicKeyHex,
+    privateKey: privateKeyHex,
   }
 }
 
@@ -133,14 +134,20 @@ export const createPatient = async (
  * @param userLogin the login of the user
  * @param userToken the auth token that will be assigned to the user
  * @param publicKey the public key to use for the user
+ * @param privateKey the private key to use for the user
  */
-export const createHealthcareParty = async (api: Apis, userLogin: string, userToken: string, publicKey: string): Promise<AuthenticationResult> => {
+export const createHealthcarePartyUser = async (api: Apis, userLogin: string, userToken: string, publicKey?: string, privateKey?: string): Promise<UserCredentials> => {
+  const { publicKey: newPublicKey, privateKey: newPrivateKey } = await api.cryptoApi.RSA.generateKeyPair()
+
+  const publicKeyHex = !!publicKey && !!privateKey ? publicKey : ua2hex(await api.cryptoApi.RSA.exportKey(newPublicKey, 'spki'))
+  const privateKeyHex = !!publicKey && !!privateKey ? privateKey : ua2hex(await api.cryptoApi.RSA.exportKey(newPrivateKey, 'pkcs8'))
+
   const hcp = await api.healthcarePartyApi.createHealthcareParty(
     new HealthcareParty({
       id: uuid(),
       firstName: uuid().substring(0, 6),
       lastName: uuid().substring(0, 6),
-      publicKey: publicKey,
+      publicKey: publicKeyHex,
     }),
   )
   const hcpUser = await api.userApi.createUser(
@@ -154,9 +161,11 @@ export const createHealthcareParty = async (api: Apis, userLogin: string, userTo
   )
   const token = await api.userApi.getToken(hcpUser.id!, uuid(), 24 * 60 * 60, userToken)
   return {
-    userId: hcpUser.id!,
+    login: hcpUser.login!,
     dataOwnerId: hcp.id!,
     password: token,
+    publicKey: publicKeyHex,
+    privateKey: privateKeyHex,
   }
 }
 
@@ -167,13 +176,19 @@ export const createHealthcareParty = async (api: Apis, userLogin: string, userTo
  * @param userLogin the login of the user
  * @param userToken the auth token that will be assigned to the user
  * @param publicKey the public key to use for the user
+ * @param privateKey the private key to use for the user
  */
-export const createDevice = async (api: Apis, userLogin: string, userToken: string, publicKey: string): Promise<AuthenticationResult> => {
+export const createDeviceUser = async (api: Apis, userLogin: string, userToken: string, publicKey?: string, privateKey?: string): Promise<UserCredentials> => {
+  const { publicKey: newPublicKey, privateKey: newPrivateKey } = await api.cryptoApi.RSA.generateKeyPair()
+
+  const publicKeyHex = !!publicKey && !!privateKey ? publicKey : ua2hex(await api.cryptoApi.RSA.exportKey(newPublicKey, 'spki'))
+  const privateKeyHex = !!publicKey && !!privateKey ? privateKey : ua2hex(await api.cryptoApi.RSA.exportKey(newPrivateKey, 'pkcs8'))
+
   const device = await api.deviceApi.createDevice(
     new Device({
       id: uuid(),
       serialNumber: uuid().substring(0, 6),
-      publicKey: publicKey,
+      publicKey: publicKeyHex,
     }),
   )
   const deviceUser = await api.userApi.createUser(
@@ -187,8 +202,10 @@ export const createDevice = async (api: Apis, userLogin: string, userToken: stri
   )
   const token = await api.userApi.getToken(deviceUser.id!, uuid(), 24 * 60 * 60, userToken)
   return {
-    userId: deviceUser.id!,
+    login: deviceUser.login!,
     dataOwnerId: device.id!,
     password: token,
+    publicKey: publicKeyHex,
+    privateKey: privateKeyHex,
   }
 }
