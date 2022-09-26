@@ -9,7 +9,6 @@ import { checkExistence } from './utils'
 import { tmpdir } from 'os'
 import { TextDecoder, TextEncoder } from 'util'
 import { createGroup } from '../dist'
-
 ;(global as any).localStorage = new (require('node-localstorage').LocalStorage)(tmpdir(), 5 * 1024 ** 3)
 ;(global as any).fetch = fetch
 ;(global as any).Storage = ''
@@ -38,12 +37,12 @@ describe('Test creation', function () {
   it('Should be able to create a healthcare party', async () => {
     const api = await Api('http://127.0.0.1:16044/rest/v1', masterCredentials.login, masterCredentials.password, webcrypto as any, fetch)
 
-    const { publicKey, privateKey } = await api.cryptoApi.RSA.generateKeyPair()
+    const { publicKey } = await api.cryptoApi.RSA.generateKeyPair()
     const publicKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
 
-    const user = await createHealthcareParty(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex)
-    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, user.healthcarePartyId!)
-    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, user.id!)
+    const result = await createHealthcareParty(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex)
+    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, result.dataOwnerId)
+    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, result.userId)
   })
 
   it('Should be able to create a patient', async () => {
@@ -57,19 +56,19 @@ describe('Test creation', function () {
     const publicKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
     const privateKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(privateKey, 'pkcs8'))
 
-    const user = await createPatient(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex, privateKeyHex, fetch)
-    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-patient`, user.patientId!)
-    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, user.id!)
+    const result = await createPatient(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex, privateKeyHex, fetch)
+    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-patient`, result.dataOwnerId)
+    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, result.userId)
   })
 
   it('Should be able to create a device', async () => {
     const api = await Api('http://127.0.0.1:16044/rest/v1', masterCredentials.login, masterCredentials.password, webcrypto as any, fetch)
 
-    const { publicKey, privateKey } = await api.cryptoApi.RSA.generateKeyPair()
+    const { publicKey } = await api.cryptoApi.RSA.generateKeyPair()
     const publicKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
 
-    const user = await createDevice(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex)
-    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, user.deviceId!)
-    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, user.id!)
+    const result = await createDevice(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex)
+    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, result.dataOwnerId)
+    await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, result.userId)
   })
 })
