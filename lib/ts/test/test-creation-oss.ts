@@ -3,10 +3,9 @@ import uuid = require('uuid')
 import { setup, bootstrapOssKraken, setupCouchDb, cleanup } from '../src'
 import { tmpdir } from 'os'
 import { Api, hex2ua, ua2hex } from '@icure/api'
-import { createDevice, createHealthcareParty, createPatient } from '../src/creation'
-import { checkExistence } from './utils'
+import { createDeviceUser, createHealthcarePartyUser, createPatientUser } from '../src/creation'
+import { checkExistence, checkUserExistence } from './utils'
 import { webcrypto } from 'crypto'
-
 ;(global as any).localStorage = new (require('node-localstorage').LocalStorage)(tmpdir(), 5 * 1024 ** 3)
 ;(global as any).fetch = fetch
 ;(global as any).Storage = ''
@@ -32,11 +31,11 @@ describe('Test creation', function () {
     hcpPubKey = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
     hcpPrivateKey = ua2hex(await api.cryptoApi.RSA.exportKey(privateKey, 'pkcs8'))
 
-    const hcpAuth = await createHealthcareParty(api, hcpLogin, hcpPwd, hcpPubKey)
+    const hcpAuth = await createHealthcarePartyUser(api, hcpLogin, hcpPwd, hcpPubKey)
     hcpId = hcpAuth.dataOwnerId
     hcpPwd = hcpAuth.password
     await checkExistence('127.0.0.1', 15984, `icure-base`, hcpAuth.dataOwnerId)
-    await checkExistence('127.0.0.1', 15984, `icure-base`, hcpAuth.userId)
+    await checkUserExistence('http://127.0.0.1:16044/rest/v1', hcpAuth)
   })
 
   after(async function () {
@@ -55,9 +54,9 @@ describe('Test creation', function () {
     const publicKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
     const privateKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(privateKey, 'pkcs8'))
 
-    const result = await createPatient(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex, privateKeyHex, fetch)
+    const result = await createPatientUser(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex, privateKeyHex, fetch)
     await checkExistence('127.0.0.1', 15984, `icure-patient`, result.dataOwnerId)
-    await checkExistence('127.0.0.1', 15984, `icure-base`, result.userId)
+    await checkUserExistence('http://127.0.0.1:16044/rest/v1', result)
   })
 
   it('Should be able to create a device', async () => {
@@ -66,8 +65,8 @@ describe('Test creation', function () {
     const { publicKey } = await api.cryptoApi.RSA.generateKeyPair()
     const publicKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
 
-    const result = await createDevice(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex)
+    const result = await createDeviceUser(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex)
     await checkExistence('127.0.0.1', 15984, `icure-base`, result.dataOwnerId)
-    await checkExistence('127.0.0.1', 15984, `icure-base`, result.userId)
+    await checkUserExistence('http://127.0.0.1:16044/rest/v1', result)
   })
 })
