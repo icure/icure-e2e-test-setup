@@ -11,6 +11,12 @@ export interface UserCredentials {
   privateKey: string
 }
 
+export interface AuthenticationResult {
+  userId: string
+  dataOwnerId: string
+  password: string
+}
+
 /**
  * Creates a HCP directly using the admin user
  *
@@ -219,7 +225,7 @@ export const createDeviceUser = async (api: Apis, userLogin: string, userToken: 
  * @param userToken the auth token that will be assigned to the user
  * @param publicKey the public key to use for the user
  */
-export const createDevice = async (api: Apis, userLogin: string, userToken: string, publicKey: string): Promise<User> => {
+export const createDevice = async (api: Apis, userLogin: string, userToken: string, publicKey: string): Promise<AuthenticationResult> => {
   const device = await api.deviceApi.createDevice(
     new Device({
       id: uuid(),
@@ -236,6 +242,10 @@ export const createDevice = async (api: Apis, userLogin: string, userToken: stri
       deviceId: device.id,
     }),
   )
-  await api.userApi.getToken(deviceUser.id!, uuid(), 24 * 60 * 60, userToken)
-  return deviceUser
+  const token = await api.userApi.getToken(deviceUser.id!, uuid(), 24 * 60 * 60, userToken)
+  return {
+    userId: deviceUser.id!,
+    dataOwnerId: device.id!,
+    password: token,
+  }
 }
