@@ -11,6 +11,12 @@ export interface MasterCredentials {
   privateKey: string
 }
 
+export interface AuthenticationResult {
+  userId: string
+  dataOwnerId: string
+  password: string
+}
+
 /**
  * Creates a HCP directly using the admin user
  *
@@ -78,7 +84,7 @@ export const createPatient = async (
   privateKey: string,
   fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
   host = 'http://127.0.0.1:16044/rest/v1',
-): Promise<User> => {
+): Promise<AuthenticationResult> => {
   const user = await hcpApi.userApi.getCurrentUser()
   const rawPatient = new Patient({
     id: uuid(),
@@ -96,9 +102,9 @@ export const createPatient = async (
       patientId: patient.id,
     }),
   )
-  await hcpApi.userApi.getToken(patientUser.id!, uuid(), 24 * 60 * 60, userToken)
+  const token = await hcpApi.userApi.getToken(patientUser.id!, uuid(), 24 * 60 * 60, userToken)
 
-  const api = await Api(host, userLogin, userToken, webcrypto as any, fetchImpl)
+  const api = await Api(host, userLogin, token, webcrypto as any, fetchImpl)
   api.cryptoApi.RSA.storeKeyPair(patient.id!, {
     publicKey: api.cryptoApi.utils.spkiToJwk(hex2ua(publicKey)),
     privateKey: api.cryptoApi.utils.pkcs8ToJwk(hex2ua(privateKey)),
@@ -113,7 +119,11 @@ export const createPatient = async (
 
   await hcpApi.patientApi.modifyPatientWithUser(user, patientToUpdate)
 
-  return patientUser
+  return {
+    userId: patientUser.id!,
+    dataOwnerId: patient.id!,
+    password: token,
+  }
 }
 
 /**
@@ -124,7 +134,7 @@ export const createPatient = async (
  * @param userToken the auth token that will be assigned to the user
  * @param publicKey the public key to use for the user
  */
-export const createHealthcareParty = async (api: Apis, userLogin: string, userToken: string, publicKey: string): Promise<User> => {
+export const createHealthcareParty = async (api: Apis, userLogin: string, userToken: string, publicKey: string): Promise<AuthenticationResult> => {
   const hcp = await api.healthcarePartyApi.createHealthcareParty(
     new HealthcareParty({
       id: uuid(),
@@ -142,8 +152,12 @@ export const createHealthcareParty = async (api: Apis, userLogin: string, userTo
       healthcarePartyId: hcp.id,
     }),
   )
-  await api.userApi.getToken(hcpUser.id!, uuid(), 24 * 60 * 60, userToken)
-  return hcpUser
+  const token = await api.userApi.getToken(hcpUser.id!, uuid(), 24 * 60 * 60, userToken)
+  return {
+    userId: hcpUser.id!,
+    dataOwnerId: hcp.id!,
+    password: token,
+  }
 }
 
 /**
@@ -154,7 +168,7 @@ export const createHealthcareParty = async (api: Apis, userLogin: string, userTo
  * @param userToken the auth token that will be assigned to the user
  * @param publicKey the public key to use for the user
  */
-export const createDevice = async (api: Apis, userLogin: string, userToken: string, publicKey: string): Promise<User> => {
+export const createDevice = async (api: Apis, userLogin: string, userToken: string, publicKey: string): Promise<AuthenticationResult> => {
   const device = await api.deviceApi.createDevice(
     new Device({
       id: uuid(),
@@ -171,6 +185,10 @@ export const createDevice = async (api: Apis, userLogin: string, userToken: stri
       deviceId: device.id,
     }),
   )
-  await api.userApi.getToken(deviceUser.id!, uuid(), 24 * 60 * 60, userToken)
-  return deviceUser
+  const token = await api.userApi.getToken(deviceUser.id!, uuid(), 24 * 60 * 60, userToken)
+  return {
+    userId: deviceUser.id!,
+    dataOwnerId: device.id!,
+    password: token,
+  }
 }
