@@ -64,8 +64,8 @@ services:
       - "8081:8080"
     environment:
       - ICURE_URL=${MOCK_ICURE_URL}
-      - ICURE_ADMIN_USER=${ICURE_ADMIN_USER}
-      - ICURE_ADMIN_PWD=${ICURE_ADMIN_PWD}
+      - ICURE_ADMIN_USER=${ICURE_TEST_MASTER_LOGIN}
+      - ICURE_ADMIN_PWD=${ICURE_TEST_MASTER_PWD}
       - ICURE_PROCESS_GROUP_ID=${ICURE_TEST_GROUP_ID}
     profiles:
       - mock
