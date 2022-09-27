@@ -18,7 +18,7 @@ let hcpPrivateKey: string | undefined
 let hcpPubKey: string | undefined
 let hcpId: string | undefined
 
-describe('Test creation', function () {
+describe('Test creation with OSS', function () {
   before(async function () {
     this.timeout(300000)
     await setup('test/scratch', process.env.OSS_DOCKER_URL!)
@@ -31,7 +31,7 @@ describe('Test creation', function () {
     hcpPubKey = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
     hcpPrivateKey = ua2hex(await api.cryptoApi.RSA.exportKey(privateKey, 'pkcs8'))
 
-    const hcpAuth = await createHealthcarePartyUser(api, hcpLogin, hcpPwd, hcpPubKey)
+    const hcpAuth = await createHealthcarePartyUser(api, hcpLogin, hcpPwd, hcpPubKey, hcpPrivateKey)
     hcpId = hcpAuth.dataOwnerId
     hcpPwd = hcpAuth.password
     await checkExistence('127.0.0.1', 15984, `icure-base`, hcpAuth.dataOwnerId)

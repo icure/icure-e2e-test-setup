@@ -36,7 +36,7 @@ describe('Test initialization', () => {
     await bootstrapOssKraken(userId)
     const isUp = await checkIfDockerIsOnline('test/scratch', process.env.OSS_DOCKER_URL!)
     expect(isUp).to.eq(true)
-    await cleanup('test/scratch', process.env.KRAKEN_DOCKER_URL!)
+    await cleanup('test/scratch', process.env.OSS_DOCKER_URL!)
   })
 
   it('Should be able to check if a docker compose is not running', async () => {

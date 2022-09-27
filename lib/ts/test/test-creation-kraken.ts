@@ -18,7 +18,7 @@ import { createGroup } from '../src/groups'
 const groupId = uuid()
 let masterCredentials: UserCredentials
 
-describe('Test creation', function () {
+describe('Test creation with Kraken', function () {
   before(async function () {
     this.timeout(300000)
     await setup('test/scratch', process.env.KRAKEN_DOCKER_URL!)

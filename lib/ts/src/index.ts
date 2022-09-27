@@ -1,11 +1,9 @@
-import * as https from 'https';
-import * as fs from 'fs';
-import * as path from 'path';
-import { exec } from 'child_process';
-import * as util from 'util';
-import axios from 'axios';
-import { Api, DatabaseInitialisation, Group, Patient } from '@icure/api';
-import uuid = require('uuid');
+import * as https from 'https'
+import * as fs from 'fs'
+import * as path from 'path'
+import { exec } from 'child_process'
+import * as util from 'util'
+import axios from 'axios'
 
 const standardEnv = {
   COUCHDB_PORT: '15984',
@@ -15,20 +13,29 @@ const standardEnv = {
   ...process.env,
 }
 
-
-export const retry = (fn: () => Promise<any>, retriesLeft = 10, interval = 2000): Promise<any> => {
-  return fn().catch((err) => {
-    if (retriesLeft > 0) {
-      console.log('Retrying in ' + interval + 'ms', err)
-      return new Promise((resolve) =>
-        setTimeout(() => resolve(null), interval)
-      ).then(() => retry(fn, retriesLeft - 1, interval * 2))
-    } else {
-      throw err;
-    }
-  })
+interface DockerProcess {
+  ID?: string
+  Name?: string
+  Command?: string
+  Project?: string
+  Service?: string
+  State?: string
+  Health?: string
+  ExitCode?: number
+  Publishers: [{ [key: string]: number | string | undefined }]
 }
 
+export function sleep(ms: number): Promise<any> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+export function retry<P>(fn: () => Promise<P>, retryCount = 3, sleepTime = 2000, exponentialFactor = 2): Promise<P> {
+  let retry = 0
+  const doFn: () => Promise<P> = () => {
+    return fn().catch((e) => (retry++ < retryCount ? (sleepTime && sleep((sleepTime *= exponentialFactor)).then(() => doFn())) || doFn() : Promise.reject(e)))
+  }
+  return doFn()
+}
 
 function fullUrl(composeFile: string) {
   return composeFile.startsWith('https') ? composeFile : `https://raw.githubusercontent.com/icure-io/icure-e2e-test-setup/master/${composeFile}.yaml`
@@ -48,10 +55,13 @@ export const setup = async (scratchDir: string, compose: string, ...profiles: st
   const composeFile = await download(scratchDir, fullUrl(compose))
 
   const composeFileContent = fs.readFileSync(composeFile, 'utf8')
-  const dependencies = composeFileContent.split(/# => /).slice(1).reduce((files, s) => {
-    const lines = s.split(/[\r\n]+# /)
-    return { ...files, [lines[0]]: lines.slice(1) }
-  }, {} as { [key: string]: string[] })
+  const dependencies = composeFileContent
+    .split(/# => /)
+    .slice(1)
+    .reduce((files, s) => {
+      const lines = s.split(/[\r\n]+# /)
+      return { ...files, [lines[0]]: lines.slice(1) }
+    }, {} as { [key: string]: string[] })
 
   Object.keys(dependencies).forEach((file) => {
     const filePath = path.join(scratchDir, file)
@@ -81,7 +91,9 @@ export const setup = async (scratchDir: string, compose: string, ...profiles: st
 export const cleanup = async (scratchDir: string, compose: string, ...profiles: string[]) => {
   try {
     const composeFile = await download(scratchDir, fullUrl(compose))
-    const { stdout, stderr } = await util.promisify(exec)(`/usr/local/bin/docker compose -f '${composeFile}' ${profiles.map((p) => `--profile ${p}`).join(' ')} down`, { env: standardEnv })
+    const { stdout, stderr } = await util.promisify(exec)(`/usr/local/bin/docker compose -f '${composeFile}' ${profiles.map((p) => `--profile ${p}`).join(' ')} down`, {
+      env: standardEnv,
+    })
     console.log(`stdout: ${stdout}`)
     console.error(`stderr: ${stderr}`)
   } catch (e) {
@@ -114,11 +126,12 @@ async function download(scratchDir: string, url: string) {
 /**
  * Initialise CouchDB and set the admin user and password
  *
+ * @param couchDbUrl: the URL of the CouchDB instance to bootstrap
  */
-export const setupCouchDb = async (host: string, port: number) => {
+export const setupCouchDb = async (couchDbUrl: string) => {
   await retry(() =>
     axios.post(
-      `http://${host}:${port}/_cluster_setup`,
+      `${couchDbUrl}/_cluster_setup`,
       {
         action: 'enable_single_node',
         username: 'icure',
@@ -132,11 +145,10 @@ export const setupCouchDb = async (host: string, port: number) => {
         headers: {
           'Content-Type': 'application/json',
         },
-      }
-    )
+      },
+    ),
   )
 }
-
 
 /**
  * Bootstrap the oss kraken with the minimal environment needed to run the tests
@@ -144,42 +156,40 @@ export const setupCouchDb = async (host: string, port: number) => {
  * @param userId The user id of the user that will be created
  * @param login The login of the user that will be created
  * @param passwordHash The password hash of the user that will be created (AES-256 encoded)
- * @param couchDbIp: the IP of the CouchDB instance to bootstrap
- * @param couchDbPort: the port of the CouchDB instance to boostrap
+ * @param couchDbUrl: the URL of the CouchDB instance to bootstrap
  */
 export const bootstrapOssKraken = async (
   userId: string,
   login = 'john',
   passwordHash = '1796980233375ccd113c972d946b2c4a7892e4f69c60684cfa730150047f9c0b', //LetMeIn
-  couchDbIp = '127.0.0.1',
-  couchDbPort = 15984
+  couchDbUrl = 'http://127.0.0.1:15984',
 ) => {
-  await retry( () =>
+  await retry(() =>
     axios
-    .post(
-      `http://${couchDbIp}:${couchDbPort}/icure-base`,
-      {
-        _id: userId,
-        login: login,
-        passwordHash: passwordHash,
-        type: 'database',
-        status: 'ACTIVE',
-        java_type: 'org.taktik.icure.entities.User',
-      },
-      {
-        auth: { username: 'icure', password: 'icure' },
-        headers: {
-          'Content-Type': 'application/json',
+      .post(
+        `${couchDbUrl}/icure-base`,
+        {
+          _id: userId,
+          login: login,
+          passwordHash: passwordHash,
+          type: 'database',
+          status: 'ACTIVE',
+          java_type: 'org.taktik.icure.entities.User',
         },
-      }
-    )
-    .catch((e) => {
-      if (e.response.status !== 409) {
-        throw e
-      }
-    })
-  );
-};
+        {
+          auth: { username: 'icure', password: 'icure' },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      .catch((e) => {
+        if (e.response.status !== 409) {
+          throw e
+        }
+      }),
+  )
+}
 
 /**
  * Bootstrap the kraken with the minimal environment needed to run the tests, create other apps, users or databases.
@@ -189,8 +199,7 @@ export const bootstrapOssKraken = async (
  * @param passwordHash The password hash of the user that will be created (AES-256 encoded)
  * @param groupId The group id of the master group that will be created
  * @param groupPassword The password of the master group that will be created
- * @param couchDbIp: the IP of the CouchDB instance to bootstrap
- * @param couchDbPort: the port of the CouchDB instance to boostrap
+ * @param couchDbUrl: the URL of the CouchDB instance to bootstrap
  */
 export const bootstrapCloudKraken = async (
   userId: string,
@@ -198,19 +207,18 @@ export const bootstrapCloudKraken = async (
   passwordHash = '1796980233375ccd113c972d946b2c4a7892e4f69c60684cfa730150047f9c0b', //LetMeIn
   groupId = 'xx',
   groupPassword = 'xx', // pragma: allowlist secret
-  couchDbIp = '127.0.0.1',
-  couchDbPort = 15984
+  couchDbUrl = 'http://127.0.0.1:15984',
 ) => {
   await axios
     .put(
-      `http://${couchDbIp}:${couchDbPort}/icure-${groupId}-base`,
+      `${couchDbUrl}/icure-${groupId}-base`,
       {},
       {
         auth: { username: 'icure', password: 'icure' },
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     )
     .catch(() => {
       /* DB might already exist */
@@ -218,7 +226,7 @@ export const bootstrapCloudKraken = async (
 
   await axios
     .post(
-      `http://${couchDbIp}:${couchDbPort}/icure-${groupId}-base`,
+      `${couchDbUrl}/icure-${groupId}-base`,
       {
         _id: userId,
         login: login,
@@ -232,7 +240,7 @@ export const bootstrapCloudKraken = async (
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     )
     .catch((e) => {
       if (e.response.status !== 409) {
@@ -243,7 +251,7 @@ export const bootstrapCloudKraken = async (
   await retry(() =>
     axios
       .post(
-        `http://${couchDbIp}:${couchDbPort}/icure-__-base`,
+        `${couchDbUrl}/icure-__-base`,
         {
           _id: `${groupId}:${userId}`,
           login: login,
@@ -255,8 +263,7 @@ export const bootstrapCloudKraken = async (
             {
               grants: [
                 {
-                  java_type:
-                    'org.taktik.icure.entities.security.AlwaysPermissionItem',
+                  java_type: 'org.taktik.icure.entities.security.AlwaysPermissionItem',
                   type: 'ADMIN',
                 },
               ],
@@ -269,18 +276,18 @@ export const bootstrapCloudKraken = async (
           headers: {
             'Content-Type': 'application/json',
           },
-        }
+        },
       )
       .catch((e) => {
         if (e.response.status !== 409) {
           throw e
         }
-      })
+      }),
   )
 
   await axios
     .post(
-      `http://${couchDbIp}:${couchDbPort}/_users`,
+      `${couchDbUrl}/_users`,
       {
         _id: `org.couchdb.user:${groupId}`,
         name: groupId,
@@ -293,7 +300,7 @@ export const bootstrapCloudKraken = async (
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     )
     .catch((e) => {
       if (e.response.status !== 409) {
@@ -303,7 +310,7 @@ export const bootstrapCloudKraken = async (
   await retry(() =>
     axios
       .post(
-        `http://${couchDbIp}:${couchDbPort}/icure-__-config`,
+        `${couchDbUrl}/icure-__-config`,
         {
           _id: groupId,
           java_type: 'org.taktik.icure.entities.Group',
@@ -325,110 +332,29 @@ export const bootstrapCloudKraken = async (
           headers: {
             'Content-Type': 'application/json',
           },
-        }
+        },
       )
       .catch((e) => {
         if (e.response.status !== 409) {
           throw e
         }
-      })
+      }),
   )
-};
+}
 
 /**
- * Creates a group with a random ID and password using the IccApi
+ * This function checks if all the docker containers in a docker compose are up and running
  *
- * @param adminLogin the login of an admin user
- * @param adminPassword the password of the user
- * @param groupId the id of the group to create
- * @param fetchImpl the implementation of the fetch function
- * @param host the Kraken API URL
+ * @param scratchDir the directory where the docker compose file is
+ * @param compose the docker compose filename or URL
  */
-export const createGroup = async (
-  adminLogin: string,
-  adminPassword: string,
-  groupId: string,
-  fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
-  host = 'http://127.0.0.1:16044/rest/v1'
-): Promise<Group> => {
-  const api = await Api(host, adminLogin, adminPassword, undefined, fetchImpl);
-  const groupName = groupId.substring(0,5);
-  const groupPwd = uuid();
-  return await api.groupApi.createGroup(
-    groupId,
-    groupName,
-    groupPwd,
-    undefined, undefined, undefined, undefined, undefined,
-    new DatabaseInitialisation({
-      users: [],
-      healthcareParties: []
-    }));
-};
-
-/**
- * Soft deletes a group using the IccApi
- *
- * @param adminLogin the login of an admin user
- * @param adminPassword the password of the user
- * @param groupId the id of the group to delete
- * @param fetchImpl the implementation of the fetch function
- * @param host the Kraken API URL
- */
-export const softDeleteGroup = async (
-  adminLogin: string,
-  adminPassword: string,
-  groupId: string,
-  fetchImpl?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
-  host = 'http://127.0.0.1:16044/rest/v1'
-): Promise<Group> => {
-  const api = await Api(host, adminLogin, adminPassword, undefined, fetchImpl);
-  return await api.groupApi.deleteGroup(groupId);
-};
-
-/**
- * Performs hard deletion of the databases of a group
- *
- * @param adminLogin a database admin login
- * @param adminPassword the admin user password
- * @param groupId the group to delete
- * @param couchDbUrl the couchDbUrl
- */
-export const hardDeleteGroup = async (
-  adminLogin: string,
-  adminPassword: string,
-  groupId: string,
-  couchDbUrl = 'http://127.0.0.1:15984'
-) => {
-  await axios
-    .delete(
-      `${couchDbUrl}/icure-${groupId}-base`,
-      {
-        auth: { username: adminLogin, password: adminPassword },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-  await axios
-    .delete(
-      `${couchDbUrl}/icure-${groupId}-healthdata`,
-      {
-        auth: { username: adminLogin, password: adminPassword },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-  await axios
-    .delete(
-      `${couchDbUrl}/icure-${groupId}-patient`,
-      {
-        auth: { username: adminLogin, password: adminPassword },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-};
+export async function checkIfDockerIsOnline(scratchDir: string, compose: string): Promise<boolean> {
+  try {
+    const composeFile = path.join(scratchDir, path.basename(fullUrl(compose)))
+    const { stdout } = await util.promisify(exec)(`/usr/local/bin/docker compose -f '${composeFile}' ps --format json`, { env: standardEnv })
+    const containers = JSON.parse(stdout) as DockerProcess[]
+    return !!containers && containers.length > 0 && containers.every((element) => !!element.State && element.State === 'running')
+  } catch (e) {
+    return false
+  }
+}
