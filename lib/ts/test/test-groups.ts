@@ -5,8 +5,17 @@ import uuid = require('uuid')
 import { expect } from 'chai'
 import { before } from 'mocha'
 import { createGroup, hardDeleteGroup, softDeleteGroup } from '../src/groups'
-import { Api } from '@icure/api'
+import { Api, Apis } from '@icure/api'
 import { webcrypto } from 'crypto'
+
+async function createGroupAndCheckForSuccess(): Promise<{ api: Apis; groupId: string }> {
+  const api = await Api('http://127.0.0.1:16044/rest/v1', 'john', 'LetMeIn', webcrypto as any, fetch)
+  const group = await createGroup(api, uuid())
+  await checkExistence('127.0.0.1', 15984, `icure-${group.id}-healthdata`)
+  await checkExistence('127.0.0.1', 15984, `icure-${group.id}-patient`)
+  await checkExistence('127.0.0.1', 15984, `icure-${group.id}-base`)
+  return { api, groupId: group.id }
+}
 
 describe('Test groups', function () {
   before(async function () {
@@ -24,24 +33,16 @@ describe('Test groups', function () {
   })
 
   it('Should be able to create a group and soft delete it', async () => {
-    const api = await Api('http://127.0.0.1:16044/rest/v1', 'john', 'LetMeIn', webcrypto as any, fetch)
-    const group = await createGroup(api, uuid())
-    await checkExistence('127.0.0.1', 15984, `icure-${group.id}-healthdata`)
-    await checkExistence('127.0.0.1', 15984, `icure-${group.id}-patient`)
-    await checkExistence('127.0.0.1', 15984, `icure-${group.id}-base`)
-    const deletedGroup = await softDeleteGroup(api, group.id!)
+    const { api, groupId } = await createGroupAndCheckForSuccess()
+    const deletedGroup = await softDeleteGroup(api, groupId)
     expect(!!deletedGroup.deletionDate).to.eq(true)
   })
 
   it('Should be able to create a group and hard delete it', async () => {
-    const api = await Api('http://127.0.0.1:16044/rest/v1', 'john', 'LetMeIn', webcrypto as any, fetch)
-    const group = await createGroup(api, uuid())
-    await checkExistence('127.0.0.1', 15984, `icure-${group.id}-healthdata`)
-    await checkExistence('127.0.0.1', 15984, `icure-${group.id}-patient`)
-    await checkExistence('127.0.0.1', 15984, `icure-${group.id}-base`)
-    await hardDeleteGroup('icure', 'icure', group.id!)
-    await checkAbsence('127.0.0.1', 15984, `icure-${group.id}-healthdata`)
-    await checkAbsence('127.0.0.1', 15984, `icure-${group.id}-patient`)
-    await checkAbsence('127.0.0.1', 15984, `icure-${group.id}-base`)
+    const { groupId } = await createGroupAndCheckForSuccess()
+    await hardDeleteGroup('icure', 'icure', groupId)
+    await checkAbsence('127.0.0.1', 15984, `icure-${groupId}-healthdata`)
+    await checkAbsence('127.0.0.1', 15984, `icure-${groupId}-patient`)
+    await checkAbsence('127.0.0.1', 15984, `icure-${groupId}-base`)
   })
 })
