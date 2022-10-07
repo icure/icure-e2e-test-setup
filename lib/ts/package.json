@@ -1,6 +1,6 @@
 {
   "name": "@icure/test-setup",
-  "version": "0.0.15",
+  "version": "0.0.17",
   "description": "A simple lib to launch containers used to setup local tests environment",
   "main": "index.ts",
   "repository": "https://github.com/icure-io/icure-e2e-test-setup",
@@ -47,9 +47,10 @@
     "typescript": "4.6.2"
   },
   "dependencies": {
-    "@icure/api": "^5.0.24",
+    "@icure/api": "4.2.38",
     "date-fns": "^2.3.0",
     "isomorphic-fetch": "^3.0.0",
+    "node-localstorage": "^2.2.1",
     "uuid": "^3.3.2"
   },
   "packageManager": "yarn@3.2.3"
