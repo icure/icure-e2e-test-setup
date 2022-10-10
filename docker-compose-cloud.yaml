@@ -45,7 +45,6 @@ services:
     restart: always
     volumes:
       - ./haproxy/:/usr/local/etc/haproxy/
-      - ./test-sock/:/run/haproxy/
     ports:
       - "8080:8080"
     profiles:
@@ -73,7 +72,7 @@ services:
       - mock
 # => ./haproxy/haproxy.cfg
 # global
-#   stats socket /run/haproxy/admin.sock user haproxy group haproxy mode 660 level admin expose-fd listeners
+#   stats socket /usr/local/etc/haproxy/admin.sock user haproxy group haproxy mode 660 level admin expose-fd listeners
 #   log stdout format raw local0 info
 # defaults
 #   log global
