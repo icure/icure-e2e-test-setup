@@ -2,18 +2,13 @@ import 'isomorphic-fetch'
 import { setup, bootstrapCloudKraken, cleanup, setupCouchDb } from '../src'
 import uuid = require('uuid')
 import { before } from 'mocha'
-import { Api, hex2ua, ua2hex } from '@icure/api'
+import { Api, hex2ua, pkcs8ToJwk, spkiToJwk } from '@icure/api'
 import { webcrypto } from 'crypto'
 import { createDeviceUser, createHealthcarePartyUser, createMasterHcpUser, createPatientUser, UserCredentials } from '../src/creation'
-import { checkExistence, checkUserExistence } from './utils'
-import { tmpdir } from 'os'
-import { TextDecoder, TextEncoder } from 'util'
+import { checkExistence, checkPatientExistence, checkUserExistence, generateKeysAsString, setLocalStorage } from './utils'
 import { createGroup } from '../src/groups'
-;(global as any).localStorage = new (require('node-localstorage').LocalStorage)(tmpdir(), 5 * 1024 ** 3)
-;(global as any).fetch = fetch
-;(global as any).Storage = ''
-;(global as any).TextDecoder = TextDecoder
-;(global as any).TextEncoder = TextEncoder
+
+setLocalStorage(fetch)
 
 const groupId = uuid()
 let masterCredentials: UserCredentials
@@ -38,8 +33,7 @@ describe('Test creation with Kraken', function () {
   it('Should be able to create a healthcare party', async () => {
     const api = await Api('http://127.0.0.1:16044/rest/v1', masterCredentials.login, masterCredentials.password, webcrypto as any, fetch)
 
-    const { publicKey } = await api.cryptoApi.RSA.generateKeyPair()
-    const publicKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
+    const { publicKeyHex } = await generateKeysAsString(api)
 
     const result = await createHealthcarePartyUser(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex)
     await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, result.dataOwnerId)
@@ -48,28 +42,28 @@ describe('Test creation with Kraken', function () {
 
   it('Should be able to create a patient', async () => {
     const api = await Api('http://127.0.0.1:16044/rest/v1', masterCredentials.login, masterCredentials.password, webcrypto as any, fetch)
-    api.cryptoApi.RSA.storeKeyPair(masterCredentials.dataOwnerId, {
-      publicKey: api.cryptoApi.utils.spkiToJwk(hex2ua(masterCredentials.publicKey)),
-      privateKey: api.cryptoApi.utils.pkcs8ToJwk(hex2ua(masterCredentials.privateKey)),
-    })
+    const jwk = {
+      publicKey: spkiToJwk(hex2ua(masterCredentials.publicKey)),
+      privateKey: pkcs8ToJwk(hex2ua(masterCredentials.privateKey)),
+    }
+    await api.cryptoApi.cacheKeyPair(jwk)
+    await api.cryptoApi.storeKeyPair(`${masterCredentials.dataOwnerId}.${masterCredentials.publicKey.slice(-32)}`, jwk)
 
-    const { publicKey, privateKey } = await api.cryptoApi.RSA.generateKeyPair()
-    const publicKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
-    const privateKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(privateKey, 'pkcs8'))
+    const { publicKeyHex, privateKeyHex } = await generateKeysAsString(api)
 
     const result = await createPatientUser(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex, privateKeyHex, fetch)
     await checkExistence('127.0.0.1', 15984, `icure-${groupId}-patient`, result.dataOwnerId)
     await checkUserExistence('http://127.0.0.1:16044/rest/v1', result)
+    await checkPatientExistence('http://127.0.0.1:16044/rest/v1', result)
   })
 
   it('Should be able to create a device', async () => {
     const api = await Api('http://127.0.0.1:16044/rest/v1', masterCredentials.login, masterCredentials.password, webcrypto as any, fetch)
 
-    const { publicKey } = await api.cryptoApi.RSA.generateKeyPair()
-    const publicKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
+    const { publicKeyHex } = await generateKeysAsString(api)
 
     const result = await createDeviceUser(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex)
     await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, result.dataOwnerId)
     await checkUserExistence('http://127.0.0.1:16044/rest/v1', result)
-  })
+  }).timeout(60000)
 })

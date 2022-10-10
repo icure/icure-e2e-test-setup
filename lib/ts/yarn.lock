@@ -194,18 +194,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@icure/api@npm:4.2.38":
-  version: 4.2.38
-  resolution: "@icure/api@npm:4.2.38"
+"@icure/api@npm:^5.0.26":
+  version: 5.0.28
+  resolution: "@icure/api@npm:5.0.28"
   dependencies:
     date-fns: ^2.23.0
     libphonenumber-js: ^1.7.18
-    lodash: ^4.17.20
+    lodash: ^4.17.21
     moment: ^2.22.1
     text-encoding: ^0.7.0
     uuid: ^8.3.2
     uuid-encoder: ^1.1.0
-  checksum: ef68a393334db4126c90163a6a8ce84c7e76d473aa9ca0336ab825aa322a3e15f9da2ec6db3da2fa8d94b71426c06d991fd18d777561458d2735f76b11160ed6
+  checksum: 3103c2250ab655960629bc0520c08f4a21346c9bba812c6db78036c0ef891140439cc62d901f14a4cd38f52a9a72c9aa24a66667264930b4da7aca9e2a3cda8b
   languageName: node
   linkType: hard
 
@@ -213,7 +213,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@icure/test-setup@workspace:."
   dependencies:
-    "@icure/api": 4.2.38
+    "@icure/api": ^5.0.26
     "@types/chai": ^4.2.16
     "@types/mocha": ^8.2.2
     "@types/node": ^18.7.16
@@ -3979,7 +3979,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:^4.17.11, lodash@npm:^4.17.20, lodash@npm:^4.17.21":
+"lodash@npm:^4.17.11, lodash@npm:^4.17.21":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: eb835a2e51d381e561e508ce932ea50a8e5a68f4ebdd771ea240d3048244a8d13658acbd502cd4829768c56f2e16bdd4340b9ea141297d472517b83868e677f7
