@@ -3,7 +3,7 @@ import uuid = require('uuid')
 import { setup, bootstrapOssKraken, setupCouchDb, cleanup } from '../src'
 import { Api, hex2ua, pkcs8ToJwk, spkiToJwk, ua2hex } from '@icure/api'
 import { createDeviceUser, createHealthcarePartyUser, createPatientUser } from '../src/creation'
-import { checkExistence, checkUserExistence, generateKeysAsString, setLocalStorage } from './utils'
+import { checkExistence, checkPatientExistence, checkUserExistence, generateKeysAsString, setLocalStorage } from './utils'
 import { webcrypto } from 'crypto'
 
 setLocalStorage(fetch)
@@ -23,7 +23,9 @@ describe('Test creation with OSS', function () {
     await bootstrapOssKraken(userId)
     const api = await Api('http://127.0.0.1:16044/rest/v1', 'john', 'LetMeIn', webcrypto as any, fetch)
 
-    const { publicKeyHex: hcpPubKey, privateKeyHex: hcpPrivateKey } = await generateKeysAsString(api)
+    const { publicKeyHex: hcpPubKeyTmp, privateKeyHex: hcpPrivateKeyTmp } = await generateKeysAsString(api)
+    hcpPubKey = hcpPubKeyTmp
+    hcpPrivateKey = hcpPrivateKeyTmp
 
     const hcpAuth = await createHealthcarePartyUser(api, hcpLogin, hcpPwd, hcpPubKey, hcpPrivateKey)
     hcpId = hcpAuth.dataOwnerId
@@ -52,6 +54,7 @@ describe('Test creation with OSS', function () {
     const result = await createPatientUser(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex, privateKeyHex, fetch)
     await checkExistence('127.0.0.1', 15984, `icure-patient`, result.dataOwnerId)
     await checkUserExistence('http://127.0.0.1:16044/rest/v1', result)
+    await checkPatientExistence('http://127.0.0.1:16044/rest/v1', result)
   })
 
   it('Should be able to create a device', async () => {

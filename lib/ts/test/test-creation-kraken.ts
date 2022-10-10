@@ -5,7 +5,7 @@ import { before } from 'mocha'
 import { Api, hex2ua, pkcs8ToJwk, spkiToJwk } from '@icure/api'
 import { webcrypto } from 'crypto'
 import { createDeviceUser, createHealthcarePartyUser, createMasterHcpUser, createPatientUser, UserCredentials } from '../src/creation'
-import { checkExistence, checkUserExistence, generateKeysAsString, setLocalStorage } from './utils'
+import { checkExistence, checkPatientExistence, checkUserExistence, generateKeysAsString, setLocalStorage } from './utils'
 import { createGroup } from '../src/groups'
 
 setLocalStorage(fetch)
@@ -54,6 +54,7 @@ describe('Test creation with Kraken', function () {
     const result = await createPatientUser(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex, privateKeyHex, fetch)
     await checkExistence('127.0.0.1', 15984, `icure-${groupId}-patient`, result.dataOwnerId)
     await checkUserExistence('http://127.0.0.1:16044/rest/v1', result)
+    await checkPatientExistence('http://127.0.0.1:16044/rest/v1', result)
   })
 
   it('Should be able to create a device', async () => {
@@ -64,5 +65,5 @@ describe('Test creation with Kraken', function () {
     const result = await createDeviceUser(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex)
     await checkExistence('127.0.0.1', 15984, `icure-${groupId}-base`, result.dataOwnerId)
     await checkUserExistence('http://127.0.0.1:16044/rest/v1', result)
-  })
+  }).timeout(60000)
 })

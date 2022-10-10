@@ -11,10 +11,10 @@ import { webcrypto } from 'crypto'
 async function createGroupAndCheckForSuccess(): Promise<{ api: Apis; groupId: string }> {
   const api = await Api('http://127.0.0.1:16044/rest/v1', 'john', 'LetMeIn', webcrypto as any, fetch)
   const group = await createGroup(api, uuid())
-  await checkExistence('127.0.0.1', 15984, `icure-${group.id}-healthdata`)
-  await checkExistence('127.0.0.1', 15984, `icure-${group.id}-patient`)
-  await checkExistence('127.0.0.1', 15984, `icure-${group.id}-base`)
-  return { api, groupId: group.id }
+  await checkExistence('127.0.0.1', 15984, `icure-${group.id!}-healthdata`)
+  await checkExistence('127.0.0.1', 15984, `icure-${group.id!}-patient`)
+  await checkExistence('127.0.0.1', 15984, `icure-${group.id!}-base`)
+  return { api, groupId: group.id! }
 }
 
 describe('Test groups', function () {
