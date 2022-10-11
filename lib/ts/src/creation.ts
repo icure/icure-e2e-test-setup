@@ -1,4 +1,4 @@
-import { Api, Apis, Device, HealthcareParty, hex2ua, Patient, ua2hex, User } from '@icure/api'
+import { Api, Apis, Device, HealthcareParty, hex2ua, Patient, pkcs8ToJwk, spkiToJwk, ua2hex, User } from '@icure/api'
 import uuid = require('uuid')
 import { retry } from './index'
 import { webcrypto } from 'crypto'
@@ -104,20 +104,24 @@ export const createPatientUser = async (
   const token = await hcpApi.userApi.getToken(patientUser.id!, uuid(), 24 * 60 * 60, userToken)
 
   const api = await Api(host, userLogin, token, webcrypto as any, fetchImpl)
-  api.cryptoApi.RSA.storeKeyPair(patient.id!, {
-    publicKey: api.cryptoApi.utils.spkiToJwk(hex2ua(publicKeyHex)),
-    privateKey: api.cryptoApi.utils.pkcs8ToJwk(hex2ua(privateKeyHex)),
-  })
-
-  const patientWithDelegations = await api.patientApi.initDelegations(patient, patientUser)
+  const jwk = {
+    publicKey: spkiToJwk(hex2ua(publicKeyHex)),
+    privateKey: pkcs8ToJwk(hex2ua(privateKeyHex)),
+  }
+  await api.cryptoApi.cacheKeyPair(jwk)
+  await api.cryptoApi.storeKeyPair(`${patient.id!}.${publicKeyHex.slice(-32)}`, jwk)
+  const patientWithDelegations = await api.patientApi.initDelegationsAndEncryptionKeys(patient, patientUser)
   const currentPatient = await api.patientApi.getPatientRaw(patient.id!)
   const patientToUpdate = await api.patientApi.initEncryptionKeys(
     patientUser,
-    new Patient({ ...currentPatient, delegations: Object.assign(patientWithDelegations.delegations ?? {}, currentPatient.delegations) }),
+    new Patient({
+      ...currentPatient,
+      delegations: Object.assign(patientWithDelegations.delegations ?? {}, currentPatient.delegations),
+      encryptionKeys: Object.assign(patientWithDelegations.encryptionKeys ?? {}, currentPatient.encryptionKeys),
+    }),
   )
 
-  await hcpApi.patientApi.modifyPatientWithUser(user, patientToUpdate)
-
+  await api.patientApi.modifyPatientWithUser(patientUser, patientToUpdate)
   return {
     login: patientUser.login!,
     dataOwnerId: patient.id!,

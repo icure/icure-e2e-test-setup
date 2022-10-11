@@ -1,16 +1,12 @@
 import 'isomorphic-fetch'
 import uuid = require('uuid')
 import { setup, bootstrapOssKraken, setupCouchDb, cleanup } from '../src'
-import { tmpdir } from 'os'
-import { Api, hex2ua, ua2hex } from '@icure/api'
+import { Api, hex2ua, pkcs8ToJwk, spkiToJwk, ua2hex } from '@icure/api'
 import { createDeviceUser, createHealthcarePartyUser, createPatientUser } from '../src/creation'
-import { checkExistence, checkUserExistence } from './utils'
+import { checkExistence, checkPatientExistence, checkUserExistence, generateKeysAsString, setLocalStorage } from './utils'
 import { webcrypto } from 'crypto'
-;(global as any).localStorage = new (require('node-localstorage').LocalStorage)(tmpdir(), 5 * 1024 ** 3)
-;(global as any).fetch = fetch
-;(global as any).Storage = ''
-;(global as any).TextDecoder = TextDecoder
-;(global as any).TextEncoder = TextEncoder
+
+setLocalStorage(fetch)
 
 const hcpLogin = `${uuid().substring(0, 6)}@icure.com`
 let hcpPwd = uuid()
@@ -27,9 +23,9 @@ describe('Test creation with OSS', function () {
     await bootstrapOssKraken(userId)
     const api = await Api('http://127.0.0.1:16044/rest/v1', 'john', 'LetMeIn', webcrypto as any, fetch)
 
-    const { publicKey, privateKey } = await api.cryptoApi.RSA.generateKeyPair()
-    hcpPubKey = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
-    hcpPrivateKey = ua2hex(await api.cryptoApi.RSA.exportKey(privateKey, 'pkcs8'))
+    const { publicKeyHex: hcpPubKeyTmp, privateKeyHex: hcpPrivateKeyTmp } = await generateKeysAsString(api)
+    hcpPubKey = hcpPubKeyTmp
+    hcpPrivateKey = hcpPrivateKeyTmp
 
     const hcpAuth = await createHealthcarePartyUser(api, hcpLogin, hcpPwd, hcpPubKey, hcpPrivateKey)
     hcpId = hcpAuth.dataOwnerId
@@ -45,25 +41,26 @@ describe('Test creation with OSS', function () {
 
   it('Should be able to create a patient', async () => {
     const api = await Api('http://127.0.0.1:16044/rest/v1', hcpLogin, hcpPwd!, webcrypto as any, fetch)
-    api.cryptoApi.RSA.storeKeyPair(hcpId!, {
-      publicKey: api.cryptoApi.utils.spkiToJwk(hex2ua(hcpPubKey!)),
-      privateKey: api.cryptoApi.utils.pkcs8ToJwk(hex2ua(hcpPrivateKey!)),
-    })
 
-    const { publicKey, privateKey } = await api.cryptoApi.RSA.generateKeyPair()
-    const publicKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
-    const privateKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(privateKey, 'pkcs8'))
+    const jwk = {
+      publicKey: spkiToJwk(hex2ua(hcpPubKey!)),
+      privateKey: pkcs8ToJwk(hex2ua(hcpPrivateKey!)),
+    }
+    await api.cryptoApi.cacheKeyPair(jwk)
+    await api.cryptoApi.storeKeyPair(`${hcpId!}.${hcpPubKey!.slice(-32)}`, jwk)
+
+    const { publicKeyHex, privateKeyHex } = await generateKeysAsString(api)
 
     const result = await createPatientUser(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex, privateKeyHex, fetch)
     await checkExistence('127.0.0.1', 15984, `icure-patient`, result.dataOwnerId)
     await checkUserExistence('http://127.0.0.1:16044/rest/v1', result)
+    await checkPatientExistence('http://127.0.0.1:16044/rest/v1', result)
   })
 
   it('Should be able to create a device', async () => {
     const api = await Api('http://127.0.0.1:16044/rest/v1', hcpLogin, hcpPwd!, webcrypto as any, fetch)
 
-    const { publicKey } = await api.cryptoApi.RSA.generateKeyPair()
-    const publicKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
+    const { publicKeyHex } = await generateKeysAsString(api)
 
     const result = await createDeviceUser(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex)
     await checkExistence('127.0.0.1', 15984, `icure-base`, result.dataOwnerId)
