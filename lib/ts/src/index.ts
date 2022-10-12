@@ -10,6 +10,10 @@ const standardEnv = {
   AS_PORT: '16044',
   COUCHDB_USER: 'icure',
   COUCHDB_PASSWORD: 'icure',
+  MOCK_ICURE_URL: 'http://kraken-1:16043/rest/v1',
+  ICURE_MOCK_LOGIN: 'john',
+  ICURE_MOCK_PWD: 'LetMeIn',
+  ICURE_TEST_GROUP_ID: 'test-group',
   ...process.env,
 }
 
