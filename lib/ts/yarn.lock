@@ -217,6 +217,7 @@ __metadata:
     "@types/chai": ^4.2.16
     "@types/mocha": ^8.2.2
     "@types/node": ^18.7.16
+    "@types/react-dom": ^18.0.6
     "@types/supertest": ^2.0.12
     "@types/uuid": ^3.4.5
     "@typescript-eslint/eslint-plugin": ^4.33.0
@@ -425,12 +426,46 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/prop-types@npm:*":
+  version: 15.7.5
+  resolution: "@types/prop-types@npm:15.7.5"
+  checksum: 5b43b8b15415e1f298243165f1d44390403bb2bd42e662bca3b5b5633fdd39c938e91b7fce3a9483699db0f7a715d08cef220c121f723a634972fdf596aec980
+  languageName: node
+  linkType: hard
+
+"@types/react-dom@npm:^18.0.6":
+  version: 18.0.6
+  resolution: "@types/react-dom@npm:18.0.6"
+  dependencies:
+    "@types/react": "*"
+  checksum: db571047af1a567631758700b9f7d143e566df939cfe5fbf7535347cc0c726a1cdbb5e3f8566d076e54cf708b6c1166689de194a9ba09ee35efc9e1d45911685
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:*":
+  version: 18.0.21
+  resolution: "@types/react@npm:18.0.21"
+  dependencies:
+    "@types/prop-types": "*"
+    "@types/scheduler": "*"
+    csstype: ^3.0.2
+  checksum: 36c1a7c9d507e81e2e629c1ad3db51d7b84d8b010c2d5008da411874286c6a5ccc711ae1d4c470efc0bdc77153cc8804a40e927e929e5164c669ca41b84b846d
+  languageName: node
+  linkType: hard
+
 "@types/responselike@npm:^1.0.0":
   version: 1.0.0
   resolution: "@types/responselike@npm:1.0.0"
   dependencies:
     "@types/node": "*"
   checksum: e99fc7cc6265407987b30deda54c1c24bb1478803faf6037557a774b2f034c5b097ffd65847daa87e82a61a250d919f35c3588654b0fdaa816906650f596d1b0
+  languageName: node
+  linkType: hard
+
+"@types/scheduler@npm:*":
+  version: 0.16.2
+  resolution: "@types/scheduler@npm:0.16.2"
+  checksum: b6b4dcfeae6deba2e06a70941860fb1435730576d3689225a421280b7742318d1548b3d22c1f66ab68e414f346a9542f29240bc955b6332c5b11e561077583bc
   languageName: node
   linkType: hard
 
@@ -1599,6 +1634,13 @@ __metadata:
   version: 1.0.0
   resolution: "crypto-random-string@npm:1.0.0"
   checksum: 6fc61a46c18547b49a93da24f4559c4a1c859f4ee730ecc9533c1ba89fa2a9e9d81f390c2789467afbbd0d1c55a6e96a71e4716b6cd3e77736ed5fced7a2df9a
+  languageName: node
+  linkType: hard
+
+"csstype@npm:^3.0.2":
+  version: 3.1.1
+  resolution: "csstype@npm:3.1.1"
+  checksum: 1f7b4f5fdd955b7444b18ebdddf3f5c699159f13e9cf8ac9027ae4a60ae226aef9bbb14a6e12ca7dba3358b007cee6354b116e720262867c398de6c955ea451d
   languageName: node
   linkType: hard
 
