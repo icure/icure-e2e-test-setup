@@ -40,30 +40,11 @@ export const softDeleteGroup = async (api: Apis, groupId: string): Promise<Group
 /**
  * Performs hard deletion of the databases of a group
  *
- * @param adminLogin a database admin login
- * @param adminPassword the admin user password
- * @param groupId the group to delete
- * @param couchDbUrl the couchDbUrl
+ * @param api a ICC API logged in with a user that can create groups
+ * @param groupId the id of the group to delete
  */
-export const hardDeleteGroup = async (adminLogin: string, adminPassword: string, groupId: string, couchDbUrl = 'http://127.0.0.1:15984') => {
-  await axios.delete(`${couchDbUrl}/icure-${groupId}-base`, {
-    auth: { username: adminLogin, password: adminPassword },
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-
-  await axios.delete(`${couchDbUrl}/icure-${groupId}-healthdata`, {
-    auth: { username: adminLogin, password: adminPassword },
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-
-  await axios.delete(`${couchDbUrl}/icure-${groupId}-patient`, {
-    auth: { username: adminLogin, password: adminPassword },
-    headers: {
-      'Content-Type': 'application/json',
-    },
+export const hardDeleteGroup = async (api: Apis, groupId: string): Promise<Group> => {
+  return await axios.delete(`${api.groupApi.host}/group/hard/${groupId}`, {
+    headers: api.groupApi.headers.reduce((previous, current) => ({ ...previous, [current.header]: current.data }), {}),
   })
 }
