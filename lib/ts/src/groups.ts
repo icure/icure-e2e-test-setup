@@ -1,5 +1,5 @@
 import { Apis, DatabaseInitialisation, Group } from '@icure/api'
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 import uuid = require('uuid')
 
 /**
@@ -43,7 +43,7 @@ export const softDeleteGroup = async (api: Apis, groupId: string): Promise<Group
  * @param api a ICC API logged in with a user that can create groups
  * @param groupId the id of the group to delete
  */
-export const hardDeleteGroup = async (api: Apis, groupId: string): Promise<Group> => {
+export const hardDeleteGroup = async (api: Apis, groupId: string): Promise<AxiosResponse> => {
   return await axios.delete(`${api.groupApi.host}/group/hard/${groupId}`, {
     headers: api.groupApi.headers.reduce((previous, current) => ({ ...previous, [current.header]: current.data }), {}),
   })
