@@ -25,10 +25,10 @@ describe('Test creation with Kraken', function () {
     masterCredentials = await createMasterHcpUser('john', 'LetMeIn', groupId, fetch)
   })
 
-  // after(async function () {
-  //   this.timeout(60000)
-  //   await cleanup('test/scratch', process.env.KRAKEN_DOCKER_URL!)
-  // })
+  after(async function () {
+    this.timeout(60000)
+    await cleanup('test/scratch', process.env.KRAKEN_DOCKER_URL!)
+  })
 
   it('Should be able to create a healthcare party', async () => {
     const api = await Api('http://127.0.0.1:16044/rest/v1', masterCredentials.login, masterCredentials.password, webcrypto as any, fetch)
