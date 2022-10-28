@@ -36,7 +36,7 @@ describe('Test creation with OSS', function () {
 
   after(async function () {
     this.timeout(60000)
-    // await cleanup('test/scratch', process.env.OSS_DOCKER_URL!)
+    await cleanup('test/scratch', process.env.OSS_DOCKER_URL!)
   })
 
   it('Should be able to create a patient', async () => {
