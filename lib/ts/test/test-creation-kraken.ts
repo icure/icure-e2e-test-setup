@@ -41,14 +41,13 @@ describe('Test creation with Kraken', function () {
   })
 
   it('Should be able to create a patient', async () => {
-    const keyStorage = new KeyStorageImpl(new LocalStorageImpl())
     const api = await Api('http://127.0.0.1:16044/rest/v1', masterCredentials.login, masterCredentials.password, webcrypto as any, fetch)
     const jwk = {
       publicKey: spkiToJwk(hex2ua(masterCredentials.publicKey)),
       privateKey: pkcs8ToJwk(hex2ua(masterCredentials.privateKey)),
     }
     await api.cryptoApi.cacheKeyPair(jwk)
-    await keyStorage.storeKeyPair(`${masterCredentials.dataOwnerId}.${masterCredentials.publicKey.slice(-32)}`, jwk)
+    await api.cryptoApi.keyStorage.storeKeyPair(`${masterCredentials.dataOwnerId}.${masterCredentials.publicKey.slice(-32)}`, jwk)
 
     const { publicKeyHex, privateKeyHex } = await generateKeysAsString(api)
 
@@ -56,7 +55,7 @@ describe('Test creation with Kraken', function () {
     await checkExistence('127.0.0.1', 15984, `icure-${groupId}-patient`, result.dataOwnerId)
     await checkUserExistence('http://127.0.0.1:16044/rest/v1', result)
     await checkPatientExistence('http://127.0.0.1:16044/rest/v1', result)
-  })
+  }).timeout(60000)
 
   it('Should be able to create a device', async () => {
     const api = await Api('http://127.0.0.1:16044/rest/v1', masterCredentials.login, masterCredentials.password, webcrypto as any, fetch)

@@ -54,14 +54,13 @@ export async function checkUserExistence(host: string, credentials: UserCredenti
 }
 
 export async function checkPatientExistence(host: string, credentials: UserCredentials) {
-  const keyStorage = new KeyStorageImpl(new LocalStorageImpl())
   const newApi = await Api(host, credentials.login, credentials.password, webcrypto as any, fetch)
   const jwk = {
     publicKey: spkiToJwk(hex2ua(credentials.publicKey)),
     privateKey: pkcs8ToJwk(hex2ua(credentials.privateKey)),
   }
   await newApi.cryptoApi.cacheKeyPair(jwk)
-  await keyStorage.storeKeyPair(`${credentials.dataOwnerId}.${credentials.publicKey.slice(-32)}`, jwk)
+  await newApi.cryptoApi.keyStorage.storeKeyPair(`${credentials.dataOwnerId}.${credentials.publicKey.slice(-32)}`, jwk)
   const user = await newApi.userApi.getCurrentUser()
   const patient = await newApi.patientApi.getPatientWithUser(user, credentials.dataOwnerId)
   expect(!!patient).to.eq(true)

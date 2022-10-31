@@ -40,7 +40,6 @@ describe('Test creation with OSS', function () {
   })
 
   it('Should be able to create a patient', async () => {
-    const keyStorage = new KeyStorageImpl(new LocalStorageImpl())
     const api = await Api('http://127.0.0.1:16044/rest/v1', hcpLogin, hcpPwd!, webcrypto as any, fetch)
 
     const jwk = {
@@ -48,7 +47,7 @@ describe('Test creation with OSS', function () {
       privateKey: pkcs8ToJwk(hex2ua(hcpPrivateKey!)),
     }
     await api.cryptoApi.cacheKeyPair(jwk)
-    await keyStorage.storeKeyPair(`${hcpId!}.${hcpPubKey!.slice(-32)}`, jwk)
+    await api.cryptoApi.keyStorage.storeKeyPair(`${hcpId!}.${hcpPubKey!.slice(-32)}`, jwk)
 
     const { publicKeyHex, privateKeyHex } = await generateKeysAsString(api)
 
