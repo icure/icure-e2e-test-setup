@@ -2,7 +2,7 @@ import 'isomorphic-fetch'
 import { setup, bootstrapCloudKraken, cleanup, setupCouchDb } from '../src'
 import uuid = require('uuid')
 import { before } from 'mocha'
-import { Api, hex2ua, pkcs8ToJwk, spkiToJwk } from '@icure/api'
+import { Api, hex2ua, KeyStorageImpl, LocalStorageImpl, pkcs8ToJwk, spkiToJwk } from '@icure/api'
 import { webcrypto } from 'crypto'
 import { createDeviceUser, createHealthcarePartyUser, createMasterHcpUser, createPatientUser, UserCredentials } from '../src/creation'
 import { checkExistence, checkPatientExistence, checkUserExistence, generateKeysAsString, setLocalStorage } from './utils'
@@ -41,13 +41,14 @@ describe('Test creation with Kraken', function () {
   })
 
   it('Should be able to create a patient', async () => {
+    const keyStorage = new KeyStorageImpl(new LocalStorageImpl())
     const api = await Api('http://127.0.0.1:16044/rest/v1', masterCredentials.login, masterCredentials.password, webcrypto as any, fetch)
     const jwk = {
       publicKey: spkiToJwk(hex2ua(masterCredentials.publicKey)),
       privateKey: pkcs8ToJwk(hex2ua(masterCredentials.privateKey)),
     }
     await api.cryptoApi.cacheKeyPair(jwk)
-    await api.cryptoApi.storeKeyPair(`${masterCredentials.dataOwnerId}.${masterCredentials.publicKey.slice(-32)}`, jwk)
+    await keyStorage.storeKeyPair(`${masterCredentials.dataOwnerId}.${masterCredentials.publicKey.slice(-32)}`, jwk)
 
     const { publicKeyHex, privateKeyHex } = await generateKeysAsString(api)
 

@@ -2,12 +2,11 @@ import { retry } from '../src'
 import axios from 'axios'
 import { expect } from 'chai'
 import { UserCredentials } from '../src/creation'
-import { Api, Apis, hex2ua, pkcs8ToJwk, spkiToJwk, ua2hex } from '@icure/api'
+import { Api, Apis, hex2ua, KeyStorageImpl, LocalStorageImpl, pkcs8ToJwk, spkiToJwk, ua2hex } from '@icure/api'
 import { webcrypto } from 'crypto'
 import { tmpdir } from 'os'
 import { TextDecoder, TextEncoder } from 'util'
 import 'isomorphic-fetch'
-import exp = require('constants')
 
 export function setLocalStorage(fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>) {
   ;(global as any).localStorage = new (require('node-localstorage').LocalStorage)(tmpdir(), 5 * 1024 ** 3)
@@ -55,13 +54,14 @@ export async function checkUserExistence(host: string, credentials: UserCredenti
 }
 
 export async function checkPatientExistence(host: string, credentials: UserCredentials) {
+  const keyStorage = new KeyStorageImpl(new LocalStorageImpl())
   const newApi = await Api(host, credentials.login, credentials.password, webcrypto as any, fetch)
   const jwk = {
     publicKey: spkiToJwk(hex2ua(credentials.publicKey)),
     privateKey: pkcs8ToJwk(hex2ua(credentials.privateKey)),
   }
   await newApi.cryptoApi.cacheKeyPair(jwk)
-  await newApi.cryptoApi.storeKeyPair(`${credentials.dataOwnerId}.${credentials.publicKey.slice(-32)}`, jwk)
+  await keyStorage.storeKeyPair(`${credentials.dataOwnerId}.${credentials.publicKey.slice(-32)}`, jwk)
   const user = await newApi.userApi.getCurrentUser()
   const patient = await newApi.patientApi.getPatientWithUser(user, credentials.dataOwnerId)
   expect(!!patient).to.eq(true)

@@ -1,4 +1,4 @@
-import { Api, Apis, Device, HealthcareParty, hex2ua, Patient, pkcs8ToJwk, spkiToJwk, ua2hex, User } from '@icure/api'
+import { Api, Apis, Device, HealthcareParty, hex2ua, KeyStorageImpl, LocalStorageImpl, Patient, pkcs8ToJwk, spkiToJwk, ua2hex, User } from '@icure/api'
 import uuid = require('uuid')
 import { retry } from './index'
 import { webcrypto } from 'crypto'
@@ -109,7 +109,8 @@ export const createPatientUser = async (
     privateKey: pkcs8ToJwk(hex2ua(privateKeyHex)),
   }
   await api.cryptoApi.cacheKeyPair(jwk)
-  await api.cryptoApi.storeKeyPair(`${patient.id!}.${publicKeyHex.slice(-32)}`, jwk)
+  const keyStorage = new KeyStorageImpl(new LocalStorageImpl())
+  await keyStorage.storeKeyPair(`${patient.id!}.${publicKeyHex.slice(-32)}`, jwk)
   const patientWithDelegations = await api.patientApi.initDelegationsAndEncryptionKeys(patient, patientUser)
   const currentPatient = await api.patientApi.getPatientRaw(patient.id!)
   const patientToUpdate = await api.patientApi.initEncryptionKeys(

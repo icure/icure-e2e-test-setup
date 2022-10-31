@@ -1,7 +1,7 @@
 import 'isomorphic-fetch'
 import uuid = require('uuid')
 import { before } from 'mocha'
-import { Api, hex2ua, pkcs8ToJwk, spkiToJwk } from '@icure/api'
+import { Api, hex2ua, KeyStorageImpl, LocalStorageImpl, pkcs8ToJwk, spkiToJwk } from '@icure/api'
 import { webcrypto } from 'crypto'
 import { createDeviceUser, createHealthcarePartyUser, createMasterHcpUser, createPatientUser, UserCredentials } from '../src/creation'
 import { generateKeysAsString, setLocalStorage } from './utils'
@@ -47,13 +47,14 @@ describe('Test creation with Acceptance', function () {
   }).timeout(60000)
 
   it('Should be able to create a patient', async () => {
+    const keyStorage = new KeyStorageImpl(new LocalStorageImpl())
     const api = await Api(iCureUrl, masterCredentials.login, masterCredentials.password, webcrypto as any, fetch)
     const jwk = {
       publicKey: spkiToJwk(hex2ua(masterCredentials.publicKey)),
       privateKey: pkcs8ToJwk(hex2ua(masterCredentials.privateKey)),
     }
     await api.cryptoApi.cacheKeyPair(jwk)
-    await api.cryptoApi.storeKeyPair(`${masterCredentials.dataOwnerId}.${masterCredentials.publicKey.slice(-32)}`, jwk)
+    await keyStorage.storeKeyPair(`${masterCredentials.dataOwnerId}.${masterCredentials.publicKey.slice(-32)}`, jwk)
 
     const { publicKeyHex, privateKeyHex } = await generateKeysAsString(api)
     const userLogin = `${uuid().substring(0, 6)}@icure.com`
