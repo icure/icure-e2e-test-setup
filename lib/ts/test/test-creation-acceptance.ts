@@ -1,24 +1,38 @@
 import 'isomorphic-fetch'
-import { setup, bootstrapCloudKraken, cleanup, setupCouchDb } from '../src'
 import uuid = require('uuid')
 import { before } from 'mocha'
 import { Api, hex2ua, pkcs8ToJwk, spkiToJwk } from '@icure/api'
 import { webcrypto } from 'crypto'
 import { createDeviceUser, createHealthcarePartyUser, createMasterHcpUser, createPatientUser, UserCredentials } from '../src/creation'
-import { checkExistence, checkPatientExistence, checkUserExistence, generateKeysAsString, setLocalStorage } from './utils'
-import { createGroup } from '../src/groups'
+import { generateKeysAsString, setLocalStorage } from './utils'
 import { expect } from 'chai'
+import { createGroup, hardDeleteGroup } from '../src/groups'
 
 setLocalStorage(fetch)
 
-const groupId = process.env.ICURE_TEST_GROUP_ID!
+const groupId = `test-e2e-${uuid()}`
 let masterCredentials: UserCredentials
 const iCureUrl = process.env.ICURE_TEST_URL!
 
 describe('Test creation with Acceptance', function () {
   before(async function () {
     this.timeout(60000)
+    const adminApi = await Api(iCureUrl, process.env.ICURE_TEST_ADMIN_LOGIN!, process.env.ICURE_TEST_ADMIN_PWD!, webcrypto as any, fetch)
+
+    const group = await createGroup(adminApi, groupId)
+    expect(!!group).to.be.true
+    expect(group.id).to.eq(groupId)
+
     masterCredentials = await createMasterHcpUser(process.env.ICURE_TEST_ADMIN_LOGIN!, process.env.ICURE_TEST_ADMIN_PWD!, groupId, fetch, iCureUrl)
+  })
+
+  after(async function () {
+    this.timeout(60000)
+    const adminApi = await Api(iCureUrl, process.env.ICURE_TEST_ADMIN_LOGIN!, process.env.ICURE_TEST_ADMIN_PWD!, webcrypto as any, fetch)
+
+    const response = await hardDeleteGroup(adminApi, groupId)
+    expect(!!response).to.be.true
+    expect(response.status).to.eq(200)
   })
 
   it('Should be able to create a healthcare party', async () => {
