@@ -235,6 +235,7 @@ export const bootstrapCloudKraken = async (
         _id: userId,
         login: login,
         passwordHash: passwordHash,
+        isUse2fa: true,
         type: 'database',
         status: 'ACTIVE',
         java_type: 'org.taktik.icure.entities.User',

@@ -39,8 +39,8 @@ describe('Test groups', function () {
   })
 
   it('Should be able to create a group and hard delete it', async () => {
-    const { groupId } = await createGroupAndCheckForSuccess()
-    await hardDeleteGroup('icure', 'icure', groupId)
+    const { api, groupId } = await createGroupAndCheckForSuccess()
+    await hardDeleteGroup(api, groupId)
     await checkAbsence('127.0.0.1', 15984, `icure-${groupId}-healthdata`)
     await checkAbsence('127.0.0.1', 15984, `icure-${groupId}-patient`)
     await checkAbsence('127.0.0.1', 15984, `icure-${groupId}-base`)
