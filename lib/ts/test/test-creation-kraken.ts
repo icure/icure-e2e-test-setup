@@ -2,7 +2,7 @@ import 'isomorphic-fetch'
 import { setup, bootstrapCloudKraken, cleanup, setupCouchDb } from '../src'
 import uuid = require('uuid')
 import { before } from 'mocha'
-import { Api, hex2ua, KeyStorageImpl, LocalStorageImpl, pkcs8ToJwk, spkiToJwk } from '@icure/api'
+import { Api, hex2ua, pkcs8ToJwk, spkiToJwk } from '@icure/api'
 import { webcrypto } from 'crypto'
 import { createDeviceUser, createHealthcarePartyUser, createMasterHcpUser, createPatientUser, UserCredentials } from '../src/creation'
 import { checkExistence, checkPatientExistence, checkUserExistence, generateKeysAsString, setLocalStorage } from './utils'

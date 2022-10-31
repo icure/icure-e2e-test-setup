@@ -1,7 +1,7 @@
 import 'isomorphic-fetch'
 import uuid = require('uuid')
 import { setup, bootstrapOssKraken, setupCouchDb, cleanup } from '../src'
-import { Api, hex2ua, KeyStorageImpl, LocalStorageImpl, pkcs8ToJwk, spkiToJwk } from '@icure/api'
+import { Api, hex2ua, pkcs8ToJwk, spkiToJwk } from '@icure/api'
 import { createDeviceUser, createHealthcarePartyUser, createPatientUser } from '../src/creation'
 import { checkExistence, checkPatientExistence, checkUserExistence, generateKeysAsString, setLocalStorage } from './utils'
 import { webcrypto } from 'crypto'

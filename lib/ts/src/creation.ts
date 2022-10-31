@@ -1,4 +1,4 @@
-import { Api, Apis, Device, HealthcareParty, hex2ua, KeyStorageImpl, LocalStorageImpl, Patient, pkcs8ToJwk, spkiToJwk, ua2hex, User } from '@icure/api'
+import { Api, Apis, Device, HealthcareParty, hex2ua, Patient, pkcs8ToJwk, spkiToJwk, ua2hex, User } from '@icure/api'
 import uuid = require('uuid')
 import { retry } from './index'
 import { webcrypto } from 'crypto'
