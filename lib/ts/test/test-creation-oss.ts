@@ -1,7 +1,7 @@
 import 'isomorphic-fetch'
 import uuid = require('uuid')
 import { setup, bootstrapOssKraken, setupCouchDb, cleanup } from '../src'
-import { Api, hex2ua, pkcs8ToJwk, spkiToJwk, ua2hex } from '@icure/api'
+import { Api, hex2ua, pkcs8ToJwk, spkiToJwk } from '@icure/api'
 import { createDeviceUser, createHealthcarePartyUser, createPatientUser } from '../src/creation'
 import { checkExistence, checkPatientExistence, checkUserExistence, generateKeysAsString, setLocalStorage } from './utils'
 import { webcrypto } from 'crypto'
@@ -47,7 +47,7 @@ describe('Test creation with OSS', function () {
       privateKey: pkcs8ToJwk(hex2ua(hcpPrivateKey!)),
     }
     await api.cryptoApi.cacheKeyPair(jwk)
-    await api.cryptoApi.storeKeyPair(`${hcpId!}.${hcpPubKey!.slice(-32)}`, jwk)
+    await api.cryptoApi.keyStorage.storeKeyPair(`${hcpId!}.${hcpPubKey!.slice(-32)}`, jwk)
 
     const { publicKeyHex, privateKeyHex } = await generateKeysAsString(api)
 
