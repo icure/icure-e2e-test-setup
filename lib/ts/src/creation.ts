@@ -109,7 +109,7 @@ export const createPatientUser = async (
     privateKey: pkcs8ToJwk(hex2ua(privateKeyHex)),
   }
   await api.cryptoApi.cacheKeyPair(jwk)
-  await api.cryptoApi.storeKeyPair(`${patient.id!}.${publicKeyHex.slice(-32)}`, jwk)
+  await api.cryptoApi.keyStorage.storeKeyPair(`${patient.id!}.${publicKeyHex.slice(-32)}`, jwk)
   const patientWithDelegations = await api.patientApi.initDelegationsAndEncryptionKeys(patient, patientUser)
   const currentPatient = await api.patientApi.getPatientRaw(patient.id!)
   const patientToUpdate = await api.patientApi.initEncryptionKeys(

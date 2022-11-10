@@ -53,7 +53,7 @@ describe('Test creation with Acceptance', function () {
       privateKey: pkcs8ToJwk(hex2ua(masterCredentials.privateKey)),
     }
     await api.cryptoApi.cacheKeyPair(jwk)
-    await api.cryptoApi.storeKeyPair(`${masterCredentials.dataOwnerId}.${masterCredentials.publicKey.slice(-32)}`, jwk)
+    await api.cryptoApi.keyStorage.storeKeyPair(`${masterCredentials.dataOwnerId}.${masterCredentials.publicKey.slice(-32)}`, jwk)
 
     const { publicKeyHex, privateKeyHex } = await generateKeysAsString(api)
     const userLogin = `${uuid().substring(0, 6)}@icure.com`
