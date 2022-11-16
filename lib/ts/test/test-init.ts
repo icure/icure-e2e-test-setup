@@ -1,4 +1,4 @@
-import { bootstrapOssKraken, setup, bootstrapCloudKraken, cleanup, setupCouchDb, checkIfDockerIsOnline } from '../src'
+import { bootstrapOssKraken, setup, bootstrapCloudKraken, cleanup, setupCouchDb, checkIfDockerIsOnline, waitUntilKrakenStarted } from '../src'
 import { checkCouchDbStarted, checkExistence } from './utils'
 import uuid = require('uuid')
 import { expect } from 'chai'
@@ -6,6 +6,7 @@ import { expect } from 'chai'
 describe('Test initialization', () => {
   it('Should be able to initialize the OSS Kraken', async () => {
     await setup('test/scratch', process.env.OSS_DOCKER_URL!)
+    await waitUntilKrakenStarted('http://127.0.0.1:16044')
     await checkCouchDbStarted()
     await setupCouchDb('http://127.0.0.1:15984')
     const userId = uuid()
@@ -16,6 +17,7 @@ describe('Test initialization', () => {
 
   it('Should be able to initialize the Kraken', async () => {
     await setup('test/scratch', process.env.KRAKEN_DOCKER_URL!)
+    await waitUntilKrakenStarted('http://127.0.0.1:16044')
     await checkCouchDbStarted()
     await setupCouchDb('http://127.0.0.1:15984')
     const userId = uuid()
@@ -30,6 +32,7 @@ describe('Test initialization', () => {
 
   it('Should be able to check if a docker compose is running', async () => {
     await setup('test/scratch', process.env.OSS_DOCKER_URL!)
+    await waitUntilKrakenStarted('http://127.0.0.1:16044')
     await checkCouchDbStarted()
     await setupCouchDb('http://127.0.0.1:15984')
     const userId = uuid()
@@ -41,6 +44,7 @@ describe('Test initialization', () => {
 
   it('Should be able to check if a docker compose is not running', async () => {
     await setup('test/scratch', process.env.OSS_DOCKER_URL!)
+    await waitUntilKrakenStarted('http://127.0.0.1:16044')
     await checkCouchDbStarted()
     await setupCouchDb('http://127.0.0.1:15984')
     await cleanup('test/scratch', process.env.OSS_DOCKER_URL!)

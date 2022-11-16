@@ -155,6 +155,20 @@ export const setupCouchDb = async (couchDbUrl: string) => {
 }
 
 /**
+ * This function waits until the Kraken is initialized
+ * @param krakenUrl the kraken Url
+ */
+export const waitUntilKrakenStarted = async (krakenUrl: string) => {
+  await retry(
+    () =>
+      axios.get(`${krakenUrl}/actuator/health`).then(({ data }) => {
+        if (data['status'] !== 'UP') throw new Error('Kraken is not started yet')
+      }),
+    5,
+  )
+}
+
+/**
  * Bootstrap the oss kraken with the minimal environment needed to run the tests
  *
  * @param userId The user id of the user that will be created
