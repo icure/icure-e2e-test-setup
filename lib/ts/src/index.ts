@@ -155,20 +155,6 @@ export const setupCouchDb = async (couchDbUrl: string) => {
 }
 
 /**
- * This function waits until the Kraken is initialized
- * @param krakenUrl the kraken Url
- */
-export const waitUntilKrakenStarted = async (krakenUrl: string) => {
-  await retry(
-    () =>
-      axios.get(`${krakenUrl}/actuator/health`).then(({ data }) => {
-        if (data['status'] !== 'UP') throw new Error('Kraken is not started yet')
-      }),
-    5,
-  )
-}
-
-/**
  * Bootstrap the oss kraken with the minimal environment needed to run the tests
  *
  * @param userId The user id of the user that will be created
@@ -182,6 +168,8 @@ export const bootstrapOssKraken = async (
   passwordHash = '1796980233375ccd113c972d946b2c4a7892e4f69c60684cfa730150047f9c0b', //LetMeIn
   couchDbUrl = 'http://127.0.0.1:15984',
 ) => {
+  await retry(() => axios.get(`${couchDbUrl}/icure-base`, { auth: { username: 'icure', password: 'icure' } }), 5)
+
   await retry(() =>
     axios
       .post(
@@ -227,6 +215,8 @@ export const bootstrapCloudKraken = async (
   groupPassword = 'xx', // pragma: allowlist secret
   couchDbUrl = 'http://127.0.0.1:15984',
 ) => {
+  await retry(() => axios.get(`${couchDbUrl}/icure-__-base`, { auth: { username: 'icure', password: 'icure' } }), 5)
+
   await axios
     .put(
       `${couchDbUrl}/icure-${groupId}-base`,

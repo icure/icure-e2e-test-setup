@@ -1,6 +1,6 @@
 import 'isomorphic-fetch'
 import uuid = require('uuid')
-import { setup, bootstrapOssKraken, setupCouchDb, cleanup, waitUntilKrakenStarted } from '../src'
+import { setup, bootstrapOssKraken, setupCouchDb, cleanup } from '../src'
 import { Api, hex2ua, pkcs8ToJwk, spkiToJwk } from '@icure/api'
 import { createDeviceUser, createHealthcarePartyUser, createPatientUser } from '../src/creation'
 import { checkExistence, checkPatientExistence, checkUserExistence, generateKeysAsString, setLocalStorage } from './utils'
@@ -18,7 +18,6 @@ describe('Test creation with OSS', function () {
   before(async function () {
     this.timeout(300000)
     await setup('test/scratch', process.env.OSS_DOCKER_URL!)
-    await waitUntilKrakenStarted('http://127.0.0.1:16044')
     await setupCouchDb('http://127.0.0.1:15984')
     const userId = uuid()
     await bootstrapOssKraken(userId)

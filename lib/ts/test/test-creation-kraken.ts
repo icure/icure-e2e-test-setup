@@ -1,5 +1,5 @@
 import 'isomorphic-fetch'
-import { setup, bootstrapCloudKraken, cleanup, setupCouchDb, waitUntilKrakenStarted } from '../src'
+import { setup, bootstrapCloudKraken, cleanup, setupCouchDb } from '../src'
 import uuid = require('uuid')
 import { before } from 'mocha'
 import { Api, hex2ua, pkcs8ToJwk, spkiToJwk } from '@icure/api'
@@ -17,7 +17,6 @@ describe('Test creation with Kraken', function () {
   before(async function () {
     this.timeout(300000)
     await setup('test/scratch', process.env.KRAKEN_DOCKER_URL!)
-    await waitUntilKrakenStarted('http://127.0.0.1:16044')
     await setupCouchDb('http://127.0.0.1:15984')
     const userId = uuid()
     await bootstrapCloudKraken(userId)
