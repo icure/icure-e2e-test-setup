@@ -49,7 +49,7 @@ services:
       - "8080:8080"
 
   mock-msg-gw:
-    image: docker.taktik.be/icure/mock:0.1.5-gd5c69a6ee4
+    image: docker.taktik.be/icure/mock:0.1.16-g8f60dbf8ba
     container_name: mock
     ports:
       - "8081:8080"
