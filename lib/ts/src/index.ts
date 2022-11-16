@@ -321,6 +321,38 @@ export const bootstrapCloudKraken = async (
           java_type: 'org.taktik.icure.entities.Group',
           name: groupId,
           password: groupPassword, //pragma: allowlist secret
+          properties: [
+            {
+              type: {
+                identifier: 'com.icure.dbs.quota.0',
+                type: 'INTEGER',
+              },
+              typedValue: {
+                type: 'INTEGER',
+                integerValue: 1000,
+              },
+            },
+            {
+              type: {
+                identifier: 'com.icure.dbs.quota.1',
+                type: 'INTEGER',
+              },
+              typedValue: {
+                type: 'INTEGER',
+                integerValue: 2,
+              },
+            },
+            {
+              type: {
+                identifier: 'com.icure.dbs.quota.2',
+                type: 'INTEGER',
+              },
+              typedValue: {
+                type: 'INTEGER',
+                integerValue: 5,
+              },
+            },
+          ],
           tags: [
             {
               id: 'IC-GROUP|root|1.0',

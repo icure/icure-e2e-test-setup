@@ -36,7 +36,7 @@ describe('Test groups', function () {
     const { api, groupId } = await createGroupAndCheckForSuccess()
     const deletedGroup = await softDeleteGroup(api, groupId)
     expect(!!deletedGroup.deletionDate).to.eq(true)
-  })
+  }).timeout(60000)
 
   it('Should be able to create a group and hard delete it', async () => {
     const { api, groupId } = await createGroupAndCheckForSuccess()
