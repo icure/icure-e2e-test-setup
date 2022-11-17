@@ -15,7 +15,7 @@ services:
     container_name: kraken-1
     ports:
       - "5005:5005"
-      - "8001:8000"
+      - "8000:8000"
       - "16044:16043"
     environment:
       - ICURE_COUCHDB_URL=http://couchdb-test:5984
@@ -31,7 +31,6 @@ services:
     container_name: kraken-2
     ports:
       - "5006:5005"
-      - "8002:8000"
       - "16045:16043"
     environment:
       - ICURE_COUCHDB_URL=http://couchdb-test:5984
