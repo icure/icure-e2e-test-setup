@@ -6,9 +6,12 @@ services:
     container_name: couchdb-test
     ports:
       - "${COUCHDB_PORT}:5984"
+    volumes:
+      - ./docker.ini/:/opt/couchdb/etc/local.d/docker.ini
     environment:
       - COUCHDB_USER=${COUCHDB_USER}
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+      - ERL_MAX_PORT=16384
 
   icure-oss-test:
     image: taktik/kraken:${VERSION:-latest}
@@ -38,3 +41,11 @@ services:
       - ICURE_ADMIN_PWD=admin
     profiles:
       - mock
+
+# => ./docker.ini
+# [chttpd]
+# bind_address = 0.0.0.0
+# port = 5984
+# server_options = [{backlog, 128}, {acceptor_pool_size, 24}, {max, 16384}]
+# [cluster]
+# n = 1
