@@ -194,9 +194,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@icure/api@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "@icure/api@npm:6.0.0"
+"@icure/api@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "@icure/api@npm:6.0.3"
   dependencies:
     date-fns: ^2.23.0
     libphonenumber-js: ^1.7.18
@@ -205,7 +205,7 @@ __metadata:
     text-encoding: ^0.7.0
     uuid: ^8.3.2
     uuid-encoder: ^1.1.0
-  checksum: 31b7b251af8f1dc26046805fe5f00640e5e7bdde17e2b2c652b314d7c1fcb2b900c00d5ebbe9a9a3fb28aaa91c52e2f938e1e6092179128eafa2458a8227bfd3
+  checksum: 406a0da0ffd35d9093dff267cbdc635182a1ab5ddaf63f807022b75faaaf1e525381ea5d9be8ec57f209ffafa3982a1d1e9290114977e5629a976f4887d4c767
   languageName: node
   linkType: hard
 
@@ -213,7 +213,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@icure/test-setup@workspace:."
   dependencies:
-    "@icure/api": ^6.0.0
+    "@icure/api": ^6.0.3
     "@types/chai": ^4.2.16
     "@types/mocha": ^8.2.2
     "@types/node": ^18.7.16
