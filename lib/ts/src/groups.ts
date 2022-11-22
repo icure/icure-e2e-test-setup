@@ -45,6 +45,9 @@ export const softDeleteGroup = async (api: Apis, groupId: string): Promise<Group
  */
 export const hardDeleteGroup = async (api: Apis, groupId: string): Promise<AxiosResponse> => {
   return await axios.delete(`${api.groupApi.host}/group/hard/${groupId}`, {
-    headers: api.groupApi.headers.reduce((previous, current) => ({ ...previous, [current.header]: current.data }), {}),
+    headers: api.groupApi.headers.reduce(
+      (previous, current) => ({ ...previous, [current.header]: current.data }),
+      (await api.groupApi.authenticationProvider.getAuthService().getAuthHeaders()).reduce((p, c) => ({ ...p, [c.header]: c.data }), {}),
+    ),
   })
 }
