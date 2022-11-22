@@ -41,9 +41,8 @@ services:
 # [chttpd]
 # bind_address = 0.0.0.0
 # port = 5984
-#
+# server_options = [{backlog, 128}, {acceptor_pool_size, 24}, {max, 16384}]
 # [httpd]
 # server_options = [{backlog, 128}, {acceptor_pool_size, 24}, {max, 16384}]
-#
 # [cluster]
 # n = 1

@@ -102,14 +102,12 @@ services:
 #   server k1 kraken-1:16043 check
 #   server k2 kraken-2:16043 check
 
-
 # => ./docker.ini
 # [chttpd]
 # bind_address = 0.0.0.0
 # port = 5984
-#
+# server_options = [{backlog, 128}, {acceptor_pool_size, 24}, {max, 16384}]
 # [httpd]
 # server_options = [{backlog, 128}, {acceptor_pool_size, 24}, {max, 16384}]
-#
 # [cluster]
 # n = 1
