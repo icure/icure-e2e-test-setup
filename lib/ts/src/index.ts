@@ -12,7 +12,7 @@ const standardEnv = {
   COUCHDB_PASSWORD: 'icure',
   MOCK_ICURE_URL: 'http://kraken-1:16043/rest/v1',
   ICURE_MOCK_LOGIN: 'john',
-  ICURE_MOCK_PWD: 'LetMeIn',
+  ICURE_MOCK_PWD: 'LetMeIn', //pragma: allowlist secret
   ICURE_TEST_GROUP_ID: 'test-group',
   ...process.env,
 }
@@ -52,10 +52,10 @@ function fullUrl(composeFile: string) {
  *
  *
  * @param scratchDir the directory where the docker-compose files will be downloaded
- * @param compose the docker-compose file to use. Can be a full url or a short name (e.g. docker-compose)
+ * @param compose the docker-compose file to use. Can be a full url or a short name (e.g. docker-compose) The default value is 'docker-compose-cloud'
  * @param profiles the docker profiles that are going to be applied to the docker-compose file
  */
-export const setup = async (scratchDir: string, compose: string, ...profiles: string[]) => {
+export const setup = async (scratchDir: string, compose: string = 'docker-compose-cloud', ...profiles: string[]) => {
   const composeFile = await download(scratchDir, fullUrl(compose))
 
   const composeFileContent = fs.readFileSync(composeFile, 'utf8')
@@ -215,7 +215,7 @@ export const bootstrapCloudKraken = async (
   groupPassword = 'xx', // pragma: allowlist secret
   couchDbUrl = 'http://127.0.0.1:15984',
 ) => {
-  await retry(() => axios.get(`${couchDbUrl}/icure-__-base`, { auth: { username: 'icure', password: 'icure' } }), 5)
+  await retry(() => axios.get(`${couchDbUrl}/icure-__-base`, { auth: { username: 'icure', password: 'icure' } }), 5, 5000)
 
   await axios
     .put(

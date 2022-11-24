@@ -19,8 +19,8 @@ async function createGroupAndCheckForSuccess(): Promise<{ api: Apis; groupId: st
 
 describe('Test groups', function () {
   before(async function () {
-    this.timeout(60000)
-    await setup('test/scratch', process.env.KRAKEN_DOCKER_URL!)
+    this.timeout(300000)
+    await setup('test/scratch', 'docker-compose-cloud')
     await checkCouchDbStarted()
     await setupCouchDb('http://127.0.0.1:15984')
     const userId = uuid()
@@ -29,7 +29,7 @@ describe('Test groups', function () {
 
   after(async function () {
     this.timeout(60000)
-    await cleanup('test/scratch', process.env.KRAKEN_DOCKER_URL!)
+    await cleanup('test/scratch', 'docker-compose-cloud')
   })
 
   it('Should be able to create a group and soft delete it', async () => {
@@ -44,5 +44,5 @@ describe('Test groups', function () {
     await checkAbsence('127.0.0.1', 15984, `icure-${groupId}-healthdata`)
     await checkAbsence('127.0.0.1', 15984, `icure-${groupId}-patient`)
     await checkAbsence('127.0.0.1', 15984, `icure-${groupId}-base`)
-  })
+  }).timeout(60000)
 })
