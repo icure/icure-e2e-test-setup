@@ -8,7 +8,7 @@ import { webcrypto } from 'crypto'
 
 setLocalStorage(fetch)
 
-const hcpLogin = `${uuid().substring(0, 6)}@icure.com`
+const hcpLogin = `${uuid()}@icure.com`
 let hcpPwd = uuid()
 let hcpPrivateKey: string | undefined
 let hcpPubKey: string | undefined
@@ -17,7 +17,7 @@ let hcpId: string | undefined
 describe('Test creation with OSS', function () {
   before(async function () {
     this.timeout(300000)
-    await setup('test/scratch', process.env.OSS_DOCKER_URL!)
+    await setup('test/scratch', 'docker-compose')
     await setupCouchDb('http://127.0.0.1:15984')
     const userId = uuid()
     await bootstrapOssKraken(userId)
@@ -36,7 +36,7 @@ describe('Test creation with OSS', function () {
 
   after(async function () {
     this.timeout(60000)
-    await cleanup('test/scratch', process.env.OSS_DOCKER_URL!)
+    await cleanup('test/scratch', 'docker-compose')
   })
 
   it('Should be able to create a patient', async () => {
@@ -51,19 +51,17 @@ describe('Test creation with OSS', function () {
 
     const { publicKeyHex, privateKeyHex } = await generateKeysAsString(api)
 
-    const result = await createPatientUser(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex, privateKeyHex, fetch)
+    const result = await createPatientUser(api, `${uuid()}@icure.com`, uuid(), publicKeyHex, privateKeyHex, fetch)
     await checkExistence('127.0.0.1', 15984, `icure-patient`, result.dataOwnerId)
     await checkUserExistence('http://127.0.0.1:16044/rest/v1', result)
     await checkPatientExistence('http://127.0.0.1:16044/rest/v1', result)
-  })
+  }).timeout(60000)
 
   it('Should be able to create a device', async () => {
     const api = await Api('http://127.0.0.1:16044/rest/v1', hcpLogin, hcpPwd!, webcrypto as any, fetch)
 
-    const { publicKeyHex } = await generateKeysAsString(api)
-
-    const result = await createDeviceUser(api, `${uuid().substring(0, 6)}@icure.com`, uuid(), publicKeyHex)
+    const result = await createDeviceUser(api, `${uuid()}@icure.com`, uuid())
     await checkExistence('127.0.0.1', 15984, `icure-base`, result.dataOwnerId)
     await checkUserExistence('http://127.0.0.1:16044/rest/v1', result)
-  })
+  }).timeout(60000)
 })
