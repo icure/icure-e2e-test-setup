@@ -10,13 +10,14 @@ import { createGroup } from '../src/groups'
 
 setLocalStorage(fetch)
 
+const dockerComposeUrl = 'https://raw.githubusercontent.com/icure/icure-e2e-test-setup/arm64/docker-compose-cloud.yaml'
 const groupId = uuid()
 let masterCredentials: UserCredentials
 
 describe('Test creation with Kraken', function () {
   before(async function () {
     this.timeout(300000)
-    await setup('test/scratch', 'docker-compose-cloud')
+    await setup('test/scratch', dockerComposeUrl)
     await setupCouchDb('http://127.0.0.1:15984')
     const userId = uuid()
     await bootstrapCloudKraken(userId)
@@ -27,7 +28,7 @@ describe('Test creation with Kraken', function () {
 
   after(async function () {
     this.timeout(60000)
-    await cleanup('test/scratch', 'docker-compose-cloud')
+    await cleanup('test/scratch', dockerComposeUrl)
   })
 
   it('Should be able to create a healthcare party', async () => {
