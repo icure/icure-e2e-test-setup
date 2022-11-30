@@ -1,4 +1,4 @@
-import { Api, Apis, Device, HealthcareParty, hex2ua, Patient, pkcs8ToJwk, spkiToJwk, ua2hex, User } from '@icure/api'
+import { Api, Apis, Device, HealthcareParty, hex2ua, Patient, Permission, PermissionItem, pkcs8ToJwk, Predicate, spkiToJwk, ua2hex, User } from '@icure/api'
 import uuid = require('uuid')
 import { retry } from './index'
 import { webcrypto } from 'crypto'
@@ -45,17 +45,28 @@ export const createMasterHcpUser = async (
   const publicKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(publicKey, 'spki'))
   const privateKeyHex = ua2hex(await api.cryptoApi.RSA.exportKey(privateKey, 'pkcs8'))
   await retry(async () => {
-    const masterApi = await Api(host, masterLogin, token, undefined, fetchImpl)
-    await masterApi.healthcarePartyApi.createHealthcareParty(
-      new HealthcareParty({
-        id: hcpId,
-        firstName: 'Master',
-        lastName: 'HCP',
-        publicKey: publicKeyHex,
+    await api.permissionApi.modifyUserPermissions(
+      `${groupId}:${masterUser.id}`,
+      new Permission({
+        grants: [
+          new PermissionItem({
+            itemType: 'AlwaysPermissionItemDto',
+            type: PermissionItem.TypeEnum.ADMIN,
+            predicate: new Predicate({}),
+          }),
+        ],
       }),
     )
   }, 5)
-
+  const masterApi = await Api(host, masterLogin, token, undefined, fetchImpl)
+  await masterApi.healthcarePartyApi.createHealthcareParty(
+    new HealthcareParty({
+      id: hcpId,
+      firstName: 'Master',
+      lastName: 'HCP',
+      publicKey: publicKeyHex,
+    }),
+  )
   return { login: masterLogin, password: token, dataOwnerId: hcpId, publicKey: publicKeyHex, privateKey: privateKeyHex }
 }
 
