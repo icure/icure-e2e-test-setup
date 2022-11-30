@@ -3,6 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/icure-e2e-test-setup.iml" filepath="$PROJECT_DIR$/.idea/icure-e2e-test-setup.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/io.icure.icure-e2e-test-setup.iml" filepath="$PROJECT_DIR$/.idea/modules/io.icure.icure-e2e-test-setup.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/io.icure.icure-e2e-test-setup.main.iml" filepath="$PROJECT_DIR$/.idea/modules/io.icure.icure-e2e-test-setup.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/io.icure.icure-e2e-test-setup.test.iml" filepath="$PROJECT_DIR$/.idea/modules/io.icure.icure-e2e-test-setup.test.iml" />
     </modules>
   </component>
 </project>
