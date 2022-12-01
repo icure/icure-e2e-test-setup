@@ -1,7 +1,6 @@
 
 plugins {
-    kotlin("jvm") version "1.7.21"
-    kotlin("plugin.serialization") version "1.7.21"
+    kotlin("jvm") version "1.7.20"
 }
 
 buildscript {
@@ -10,7 +9,7 @@ buildscript {
         maven { url = uri("https://maven.taktik.be/content/groups/public") }
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.21")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.20")
         classpath("com.taktik.gradle:gradle-plugin-git-version:2.0.4")
         classpath("com.taktik.gradle:gradle-plugin-maven-repository:1.0.2")
     }
@@ -38,10 +37,6 @@ dependencies {
 
     implementation(group = "io.ktor", name = "ktor-client-core", version = "2.1.3")
     implementation(group = "io.ktor", name = "ktor-client-cio", version = "2.1.3")
-    implementation(group = "io.ktor", name = "ktor-serialization-kotlinx-json", version ="2.1.3")
-    implementation(group = "io.ktor", name = "ktor-client-content-negotiation", version ="2.1.3")
-
-
 
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter", version = "5.7.0")
     testImplementation(group = "io.mockk", name = "mockk", version = "1.11.0")
