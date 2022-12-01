@@ -8,6 +8,7 @@ import { webcrypto } from 'crypto'
 
 setLocalStorage(fetch)
 
+const dockerComposeUrl = 'https://raw.githubusercontent.com/icure/icure-e2e-test-setup/arm64/docker-compose.yaml'
 const hcpLogin = `${uuid()}@icure.com`
 let hcpPwd = uuid()
 let hcpPrivateKey: string | undefined
@@ -17,7 +18,7 @@ let hcpId: string | undefined
 describe('Test creation with OSS', function () {
   before(async function () {
     this.timeout(300000)
-    await setup('test/scratch', 'docker-compose')
+    await setup('test/scratch', dockerComposeUrl)
     await setupCouchDb('http://127.0.0.1:15984')
     const userId = uuid()
     await bootstrapOssKraken(userId)
@@ -36,7 +37,7 @@ describe('Test creation with OSS', function () {
 
   after(async function () {
     this.timeout(60000)
-    await cleanup('test/scratch', 'docker-compose')
+    await cleanup('test/scratch', dockerComposeUrl)
   })
 
   it('Should be able to create a patient', async () => {
