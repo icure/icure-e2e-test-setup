@@ -27,6 +27,7 @@ services:
       - ICURE_AUTHENTICATION_LOCAL=true
       - ICURE_OBJECTSTORAGE_ICURECLOUDURL=http://icure-oss-test:16043
       - ICURE_OBJECTSTORAGE_CACHELOCATION=/tmp
+      - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     depends_on:
       - couchdb
 
